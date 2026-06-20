@@ -11,6 +11,13 @@
 		5F422AFC2FE66FD500BB5B9D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F422AFB2FE66FD500BB5B9D /* SceneDelegate.swift */; };
 		5F422B032FE66FD700BB5B9D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F422B022FE66FD700BB5B9D /* Assets.xcassets */; };
 		5F422B062FE66FD700BB5B9D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5F422B042FE66FD700BB5B9D /* LaunchScreen.storyboard */; };
+		5F9ED9102FE6A4A000250E3D /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED90F2FE6A4A000250E3D /* CombineMoya */; };
+		5F9ED9122FE6A4A000250E3D /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED9112FE6A4A000250E3D /* Moya */; };
+		5F9ED9152FE6B18F00250E3D /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED9142FE6B18F00250E3D /* SnapKit */; };
+		5F9ED9172FE6B18F00250E3D /* SnapKit-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED9162FE6B18F00250E3D /* SnapKit-Dynamic */; };
+		5F9ED91A2FE6B20000250E3D /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED9192FE6B20000250E3D /* Swinject */; };
+		5F9ED91D2FE6B2C600250E3D /* XCoordinator in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED91C2FE6B2C600250E3D /* XCoordinator */; };
+		5F9ED91F2FE6B2C600250E3D /* XCoordinatorCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 5F9ED91E2FE6B2C600250E3D /* XCoordinatorCombine */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +34,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5F9ED9152FE6B18F00250E3D /* SnapKit in Frameworks */,
+				5F9ED91A2FE6B20000250E3D /* Swinject in Frameworks */,
+				5F9ED9122FE6A4A000250E3D /* Moya in Frameworks */,
+				5F9ED9102FE6A4A000250E3D /* CombineMoya in Frameworks */,
+				5F9ED91F2FE6B2C600250E3D /* XCoordinatorCombine in Frameworks */,
+				5F9ED91D2FE6B2C600250E3D /* XCoordinator in Frameworks */,
+				5F9ED9172FE6B18F00250E3D /* SnapKit-Dynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +108,13 @@
 			);
 			name = TestTask;
 			packageProductDependencies = (
+				5F9ED90F2FE6A4A000250E3D /* CombineMoya */,
+				5F9ED9112FE6A4A000250E3D /* Moya */,
+				5F9ED9142FE6B18F00250E3D /* SnapKit */,
+				5F9ED9162FE6B18F00250E3D /* SnapKit-Dynamic */,
+				5F9ED9192FE6B20000250E3D /* Swinject */,
+				5F9ED91C2FE6B2C600250E3D /* XCoordinator */,
+				5F9ED91E2FE6B2C600250E3D /* XCoordinatorCombine */,
 			);
 			productName = TestTask;
 			productReference = 5F422AF62FE66FD500BB5B9D /* TestTask.app */;
@@ -123,6 +144,12 @@
 			);
 			mainGroup = 5F422AED2FE66FD500BB5B9D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5F9ED90E2FE6A4A000250E3D /* XCRemoteSwiftPackageReference "Moya" */,
+				5F9ED9132FE6B18F00250E3D /* XCRemoteSwiftPackageReference "SnapKit" */,
+				5F9ED9182FE6B20000250E3D /* XCRemoteSwiftPackageReference "Swinject" */,
+				5F9ED91B2FE6B2C600250E3D /* XCRemoteSwiftPackageReference "XCoordinator" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5F422AF72FE66FD500BB5B9D /* Products */;
 			projectDirPath = "";
@@ -180,14 +207,14 @@
 				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu.TestTask;
+				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -210,14 +237,14 @@
 				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu.TestTask;
+				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -372,6 +399,79 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5F9ED90E2FE6A4A000250E3D /* XCRemoteSwiftPackageReference "Moya" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Moya/Moya";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.3;
+			};
+		};
+		5F9ED9132FE6B18F00250E3D /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+		5F9ED9182FE6B20000250E3D /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
+		5F9ED91B2FE6B2C600250E3D /* XCRemoteSwiftPackageReference "XCoordinator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/QuickBirdEng/XCoordinator";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5F9ED90F2FE6A4A000250E3D /* CombineMoya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED90E2FE6A4A000250E3D /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = CombineMoya;
+		};
+		5F9ED9112FE6A4A000250E3D /* Moya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED90E2FE6A4A000250E3D /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = Moya;
+		};
+		5F9ED9142FE6B18F00250E3D /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED9132FE6B18F00250E3D /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		5F9ED9162FE6B18F00250E3D /* SnapKit-Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED9132FE6B18F00250E3D /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = "SnapKit-Dynamic";
+		};
+		5F9ED9192FE6B20000250E3D /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED9182FE6B20000250E3D /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
+		};
+		5F9ED91C2FE6B2C600250E3D /* XCoordinator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED91B2FE6B2C600250E3D /* XCRemoteSwiftPackageReference "XCoordinator" */;
+			productName = XCoordinator;
+		};
+		5F9ED91E2FE6B2C600250E3D /* XCoordinatorCombine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F9ED91B2FE6B2C600250E3D /* XCRemoteSwiftPackageReference "XCoordinator" */;
+			productName = XCoordinatorCombine;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5F422AEE2FE66FD500BB5B9D /* Project object */;
 }
