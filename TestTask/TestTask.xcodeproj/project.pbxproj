@@ -41,6 +41,13 @@
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};
+		5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "TestTask" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ServicesFactory.swift,
+			);
+			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -83,6 +90,14 @@
 			path = Coordinators;
 			sourceTree = "<group>";
 		};
+		5FF7455B2FE6ED9000B54A38 /* Services */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "TestTask" target */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +120,7 @@
 		5F422AED2FE66FD500BB5B9D = {
 			isa = PBXGroup;
 			children = (
+				5FF7455B2FE6ED9000B54A38 /* Services */,
 				5F5CE13F2FE6CA7700760AA3 /* Coordinators */,
 				5F5CE12A2FE6C41E00760AA3 /* Library */,
 				5F5CE13D2FE6C93300760AA3 /* Scenes */,

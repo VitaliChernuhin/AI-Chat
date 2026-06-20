@@ -14,13 +14,16 @@ enum MainRoute: Route {
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
-    convenience init() {
+    private let servicesFactory: ServicesFactory
+    
+    init(servicesFactory: ServicesFactory) {
+        self.servicesFactory = servicesFactory
         let navigationController = MainActor.assumeIsolated {
             let nc = UINavigationController()
             nc.isNavigationBarHidden = true
             return nc
         }
-        self.init(rootViewController: navigationController, initialRoute: .mainPage)
+        super.init(rootViewController: navigationController, initialRoute: .mainPage)
     }
     
     
