@@ -124,7 +124,7 @@ final class FeatureCell: UICollectionViewCell {
                                    textColor: AppColors.accent.withAlphaComponent(0.7))
             
             subtitleView.snp.remakeConstraints { make in
-                make.top.equalTo(titleLabel.snp.bottom).offset(12) // Отступ 12pt от заголовка
+                make.top.equalTo(titleLabel.snp.bottom).offset(12)
                 make.leading.equalTo(titleLabel.snp.leading)
                 make.trailing.equalToSuperview().offset(-16)
                 make.height.equalTo(18)
@@ -140,12 +140,10 @@ final class FeatureCell: UICollectionViewCell {
                                    font: subtitleFont,
                                    textColor: AppColors.placeholderText)
             
-            // ДИНАМИЧЕСКИЙ ЛЕЙАУТ: прибиваем строго к НИЖНЕМУ краю с отступом 16pt! 🌟
             subtitleView.snp.remakeConstraints { make in
                 make.leading.equalTo(titleLabel.snp.leading)
-                make.trailing.equalToSuperview().offset(-8) 
-//                make.trailing.equalToSuperview().offset(-16)
-                make.bottom.equalToSuperview().offset(-16) // Отступ 16pt от самого низа карточки
+                make.trailing.equalToSuperview().offset(-16)
+                make.bottom.equalToSuperview().offset(-16)
                 make.height.equalTo(18)
             }
         }
