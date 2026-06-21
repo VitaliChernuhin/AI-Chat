@@ -30,6 +30,7 @@
 		5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "TestTask" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Helpers/AppColors.swift,
 				Helpers/FontFamaly.swift,
 				Views/BackgroundView.swift,
 			);

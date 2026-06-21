@@ -11,10 +11,10 @@ import SnapKit
 final class BackgroundView: UIView {
     
     // MARK: - UI Components
-    // Базовый глубокий темный фон
+
     private let baseBackgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(red: 0.03, green: 0.02, blue: 0.04, alpha: 1.0)
+        view.backgroundColor = AppColors.background
         return view
     }()
     
@@ -24,7 +24,7 @@ final class BackgroundView: UIView {
     
     // Маска для плавного затухания цвета сверху вниз
     private let maskGradientLayer = CAGradientLayer()
-
+    
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
