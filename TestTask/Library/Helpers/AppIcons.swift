@@ -19,4 +19,10 @@ enum AppIcons {
         }
     }
     
+    enum NavigationBar {
+        static var back: UIImage? {
+            return UIImage(named: "navBar_back")
+        }
+    }
+    
 }

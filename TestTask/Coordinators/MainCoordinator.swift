@@ -11,6 +11,7 @@ import UIKit
 enum MainRoute: Route {
     case mainPage
     case settings
+    case back
 }
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
@@ -39,9 +40,11 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             }
         case .settings:
             return MainActor.assumeIsolated {
-                let viewController = Self.configureSettingsScene()
+                let viewController = Self.configureSettingsScene(router: currentRouter)
                 return .push(viewController)
             }
+        case .back:
+            return .pop()
         }
     }
     
@@ -51,8 +54,8 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     }
     
     @MainActor
-    private static func configureSettingsScene() -> UIViewController {
-        SettingsViewController()
+    private static func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
+         SettingsViewController(title: "Settings", router: router)
     }
     
 }

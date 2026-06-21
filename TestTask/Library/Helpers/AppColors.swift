@@ -18,5 +18,7 @@ enum AppColors {
     static let card = UIColor(red: 31/255, green: 25/255, blue: 31/255, alpha: 1.0)
     
     static let settingsIcon = UIColor(red: 110/255, green: 100/255, blue: 108/255, alpha: 1.0)
+    
+    static let navBarBackground = UIColor(red: 10/255, green: 7/255, blue: 14/255, alpha: 1.0)
 }
 

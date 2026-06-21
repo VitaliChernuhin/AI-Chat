@@ -8,11 +8,9 @@
 import UIKit
 import SnapKit
 
-final class SettingsViewController: UIViewController {
+final class SettingsViewController: BaseViewController<MainRoute> {
     
-    // Переиспользуем наш идеальный кастомный фон
-    private let backgroundView = BackgroundView()
-    
+    // MARK: - UI Components
     private let comingSoonLabel: UILabel = {
         let label = UILabel()
         label.text = "Settings\ncoming soon..."
@@ -23,26 +21,24 @@ final class SettingsViewController: UIViewController {
         return label
     }()
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupViews()
-        setupConstraints()
+        setupUniqueViews()
+        setupUniqueConstraints()
     }
     
-    private func setupViews() {
-        view.addSubview(backgroundView)
+    // MARK: - Setup Unique Content
+    private func setupUniqueViews() {
         view.addSubview(comingSoonLabel)
     }
     
-    private func setupConstraints() {
-        backgroundView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        
+    private func setupUniqueConstraints() {
         comingSoonLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
             make.leading.trailing.equalToSuperview().inset(40)
         }
     }
 }
+
 
