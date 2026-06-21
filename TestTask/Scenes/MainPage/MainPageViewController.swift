@@ -26,7 +26,11 @@ final class MainPageViewController: UIViewController {
     private let settingsButton: UIButton = {
         let button = UIButton(type: .system)
         if let image = AppIcons.MainPage.settings {
-            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
+            button
+                .setImage(
+                    image.withRenderingMode(.alwaysTemplate),
+                    for: .normal
+                )
         }
         button.tintColor = AppColors.settingsIcon
         button.backgroundColor = AppColors.card
@@ -54,14 +58,21 @@ final class MainPageViewController: UIViewController {
     
     private lazy var collectionView: UICollectionView = {
         let layout = createCompositionalLayout()
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        let collectionView = UICollectionView(
+            frame: .zero,
+            collectionViewLayout: layout
+        )
         collectionView.backgroundColor = .clear
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.showsVerticalScrollIndicator = false
         
         // Используем динамическое свойство из расширения протокола 🌟
-        collectionView.register(FeatureCell.self, forCellWithReuseIdentifier: FeatureCell.reuseIdentifier)
+        collectionView
+            .register(
+                FeatureCell.self,
+                forCellWithReuseIdentifier: FeatureCell.reuseIdentifier
+            )
         return collectionView
     }()
     
@@ -136,8 +147,18 @@ final class MainPageViewController: UIViewController {
     }
     
     private func setupActions() {
-        settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
-        askButton.addTarget(self, action: #selector(askButtonTapped), for: .touchUpInside)
+        settingsButton
+            .addTarget(
+                self,
+                action: #selector(settingsButtonTapped),
+                for: .touchUpInside
+            )
+        askButton
+            .addTarget(
+                self,
+                action: #selector(askButtonTapped),
+                for: .touchUpInside
+            )
     }
     
     // MARK: - Actions
@@ -152,34 +173,39 @@ final class MainPageViewController: UIViewController {
 
 // MARK: - Composition layout
 extension MainPageViewController {
+    
+    // MARK: - Compositional Layout Magic 🌟
     private func createCompositionalLayout() -> UICollectionViewLayout {
         return UICollectionViewCompositionalLayout { _, _ in
             
-            // 1. ЛЕВАЯ КАРТОЧКА (50% ширины всей группы, 100% высоты)
+            // 1. ЛЕВАЯ КАРТОЧКА
             let leftItem = NSCollectionLayoutItem(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                    heightDimension: .fractionalHeight(1.0))
             )
             leftItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
             
-            // 2. ПРАВЫЕ КАРТОЧКИ (100% ширины правой подгруппы, по 50% высоты каждая)
+            // 2. ПРАВЫЕ КАРТОЧКИ
             let rightItem = NSCollectionLayoutItem(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                    heightDimension: .fractionalHeight(0.5))
             )
-            rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 12, trailing: 0)
+            rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
             
-            // Объединяем правые карточки в одну вертикальную группу
+            // Объединяем правые карточки в вертикальную группу
             let rightGroup = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                    heightDimension: .fractionalHeight(1.0)),
                 subitems: [rightItem]
             )
+            rightGroup.interItemSpacing = .fixed(12) // Наш зазор между правыми карточками
             
-            // 3. ГЛАВНАЯ СТРОКА (Соединяет левую и правую части в Bento-сетку)
+            // 3. ГЛАВНАЯ ГРУППА СЕТКИ
             let mainGroup = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   heightDimension: .absolute(370)), // Суммарная высота сетки
+                                                   // ЗАКРЕПИЛИ: Выставляем 335pt! 🌟
+                                                   // Это даст правым карточкам раскрыться, и зазор между текстами станет ровно 8pt
+                                                   heightDimension: .absolute(335)),
                 subitems: [leftItem, rightGroup]
             )
             
@@ -206,7 +232,10 @@ extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDe
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        didSelectItemAt indexPath: IndexPath
+    ) {
         let selectedItem = features[indexPath.item]
         print("Нажали на карточку Bento: \(selectedItem.title)")
         
