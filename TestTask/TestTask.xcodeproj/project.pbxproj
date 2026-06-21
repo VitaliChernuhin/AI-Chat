@@ -24,6 +24,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				MainPage/MainPageViewController.swift,
+				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};

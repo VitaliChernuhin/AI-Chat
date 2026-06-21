@@ -10,6 +10,7 @@ import UIKit
 
 enum MainRoute: Route {
     case mainPage
+    case settings
 }
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
@@ -21,6 +22,7 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
         let navigationController = MainActor.assumeIsolated {
             let nc = UINavigationController()
             nc.isNavigationBarHidden = true
+            nc.interactivePopGestureRecognizer?.isEnabled = true
             return nc
         }
         super.init(rootViewController: navigationController, initialRoute: .mainPage)
@@ -28,17 +30,29 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
     
     nonisolated override func prepareTransition(for route: MainRoute) -> NavigationTransition {
+        let currentRouter = self.weakRouter
         switch route {
         case .mainPage:
             return MainActor.assumeIsolated {
-                let viewController = Self.createMainPageViewController()
+                let viewController = Self.configureMainPageScene(router: currentRouter)
+                return .push(viewController)
+            }
+        case .settings:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureSettingsScene()
                 return .push(viewController)
             }
         }
     }
     
     @MainActor
-    private static func createMainPageViewController() -> MainPageViewController {
-        return MainPageViewController()
+    private static func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        MainPageViewController(router:router)
     }
+    
+    @MainActor
+    private static func configureSettingsScene() -> UIViewController {
+        SettingsViewController()
+    }
+    
 }

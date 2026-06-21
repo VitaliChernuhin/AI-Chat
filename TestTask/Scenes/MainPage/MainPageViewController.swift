@@ -7,8 +7,12 @@
 
 import UIKit
 import SnapKit
+import XCoordinator
 
 final class MainPageViewController: UIViewController {
+    
+    // MARK: - Properties
+    private let router: WeakRouter<MainRoute>
     
     // MARK: - UI Components
     private let backgroundView = BackgroundView()
@@ -30,11 +34,22 @@ final class MainPageViewController: UIViewController {
         return imageView
     }()
     
+    // MARK: - Init
+    init(router: WeakRouter<MainRoute>) {
+        self.router = router
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
         setupConstraints()
+        setupActions()
     }
     
     override func viewDidLayoutSubviews() {
@@ -65,5 +80,14 @@ final class MainPageViewController: UIViewController {
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(80)
             make.width.height.equalTo(60)
         }
+    }
+    
+    private func setupActions() {
+        settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+    }
+    
+    // MARK: - Actions
+    @objc private func settingsButtonTapped() {
+        router.trigger(.settings)
     }
 }
