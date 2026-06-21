@@ -38,47 +38,38 @@ final class FeatureSubtitleView: UIView {
     }
     
     // MARK: - Configuration
-    func configure(with parts: [String], font: UIFont, textColor: UIColor) {
+    // Добавили параметр alignment с дефолтным значением .center 🌟
+    func configure(with parts: [String], font: UIFont, textColor: UIColor, alignment: NSTextAlignment = .center) {
         guard parts.count >= 2 else { return }
         
-        // 1. Создаем вложение для нашей дизайнерской точки
+        // Меняем выравнивание лейбла на лету!
+        textLabel.textAlignment = alignment
+        
         let dotAttachment = NSTextAttachment()
         if let dotImage = AppIcons.MainPage.bulletDot {
             dotAttachment.image = dotImage.withRenderingMode(.alwaysTemplate)
         }
         
-        // Сдвигаем точку по вертикали, чтобы она стояла строго по центру букв
         dotAttachment.bounds = CGRect(x: 0, y: 3.5, width: 4, height: 4)
         
-        // 2. Собираем атрибутированную строку
         let finalAttributedString = NSMutableAttributedString()
-        
-        // Общие атрибуты для текста
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: textColor
         ]
         
-        // Левая часть
         let leftPart = NSAttributedString(string: parts[0] + "   ", attributes: textAttributes)
         
-        // Это заставит системный рендерер принудительно перекрасить .alwaysTemplate картинку в нужный нам textColor
         let dotString = NSMutableAttributedString(attachment: dotAttachment)
         dotString.addAttributes([.foregroundColor: textColor], range: NSRange(location: 0, length: dotString.length))
         
-        // Правая часть
         let rightPart = NSAttributedString(string: "   " + parts[1], attributes: textAttributes)
         
-        // Соединяем все слои
         finalAttributedString.append(leftPart)
-        finalAttributedString.append(dotString) // Добавляем принудительно покрашенную точку
+        finalAttributedString.append(dotString)
         finalAttributedString.append(rightPart)
         
-        // Прокидываем готовую строку в лейбл
         textLabel.attributedText = finalAttributedString
-        
-        // Управляем прозрачностью всей строки (70% для левой карточки)
         textLabel.alpha = textColor == AppColors.placeholderText ? 1.0 : 0.7
     }
-
 }

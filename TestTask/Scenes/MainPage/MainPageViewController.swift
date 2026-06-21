@@ -66,8 +66,8 @@ final class MainPageViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.showsVerticalScrollIndicator = false
+        collectionView.isScrollEnabled = false
         
-        // Используем динамическое свойство из расширения протокола 🌟
         collectionView
             .register(
                 FeatureCell.self,
@@ -174,9 +174,16 @@ final class MainPageViewController: UIViewController {
 // MARK: - Composition layout
 extension MainPageViewController {
     
-    // MARK: - Compositional Layout Magic 🌟
     private func createCompositionalLayout() -> UICollectionViewLayout {
         return UICollectionViewCompositionalLayout { _, _ in
+            
+            // 1. Измеряем общую высоту экрана устройства
+            let screenHeight = UIScreen.main.bounds.height
+            
+            // 2. ДИНАМИЧЕСКИЙ РАСЧЕТ ВЫСОТЫ СЕТКИ
+            // Если это iPhone SE (высота 667pt), даем сетке компактные 260pt.
+            // Если экран большой (iPhone 11/13/15/17), оставляем твои идеальные 335pt!
+            let bentoGridHeight: CGFloat = screenHeight <= 667 ? 255 : 335
             
             // 1. ЛЕВАЯ КАРТОЧКА
             let leftItem = NSCollectionLayoutItem(
@@ -192,20 +199,22 @@ extension MainPageViewController {
             )
             rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
             
-            // Объединяем правые карточки в вертикальную группу
+            // Вертикальная группа для правых карточек
             let rightGroup = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                    heightDimension: .fractionalHeight(1.0)),
                 subitems: [rightItem]
             )
-            rightGroup.interItemSpacing = .fixed(12) // Наш зазор между правыми карточками
             
-            // 3. ГЛАВНАЯ ГРУППА СЕТКИ
+            // На SE делаем шаг между правыми карточками чуть плотнее (8pt вместо 12pt), чтобы выиграть место!
+            let spacingBetweenCards: CGFloat = screenHeight <= 667 ? 8 : 12
+            rightGroup.interItemSpacing = .fixed(spacingBetweenCards)
+            
+            // 3. ГЛАВНАЯ ГРУППА СЕТКИ С ДИНАМИЧЕСКОЙ ВЫСОТОЙ
             let mainGroup = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   // ЗАКРЕПИЛИ: Выставляем 335pt! 🌟
-                                                   // Это даст правым карточкам раскрыться, и зазор между текстами станет ровно 8pt
-                                                   heightDimension: .absolute(335)),
+                                                   // Прокидываем адаптивную высоту
+                                                   heightDimension: .absolute(bentoGridHeight)),
                 subitems: [leftItem, rightGroup]
             )
             
@@ -232,13 +241,8 @@ extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDe
         return cell
     }
     
-    func collectionView(
-        _ collectionView: UICollectionView,
-        didSelectItemAt indexPath: IndexPath
-    ) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath ) {
         let selectedItem = features[indexPath.item]
         print("Нажали на карточку Bento: \(selectedItem.title)")
-        
-        // В следующем шаге мы завяжем здесь красивый switch по selectedItem.type
     }
 }

@@ -14,7 +14,6 @@ final class AskAnyButton: UIButton {
     private let gradientUnderlay: UIView = {
         let view = UIView()
         view.isUserInteractionEnabled = false
-        // ОБНОВИЛИ: Ставим капсульный радиус скругления из Figma
         view.layer.cornerRadius = 24
         view.clipsToBounds = true
         return view
@@ -75,7 +74,7 @@ final class AskAnyButton: UIButton {
         }
     }
     
-    // MARK: - Gradient Border Magic 🌟🌟🌟🌟🌟🌟
+    // MARK: - Gradient Border
     private func applyGradientBorder() {
         gradientUnderlay.layer.sublayers?.filter { $0.name == "MainGradientBorder" }.forEach { $0.removeFromSuperlayer() }
         

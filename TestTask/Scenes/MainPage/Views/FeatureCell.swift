@@ -41,6 +41,11 @@ final class FeatureCell: UICollectionViewCell {
         let label = UILabel()
         label.textColor = AppColors.accent
         label.numberOfLines = 2
+        
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.75 // Шрифт может плавно сжаться на четверть на мелких экранах
+        label.lineBreakMode = .byTruncatingTail // Обязательный параметр для работы сжатия строк!
+        
         return label
     }()
     
@@ -52,6 +57,10 @@ final class FeatureCell: UICollectionViewCell {
         var config = UIButton.Configuration.plain()
         config.title = "Ready in seconds"
         config.baseForegroundColor = AppColors.accent
+        
+        // 1. Жестко запрещаем перенос заголовка кнопки на две строки
+        config.titleLineBreakMode = .byTruncatingTail
+        
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
             var outgoing = incoming
             outgoing.font = FontFamily.Inter.regular(size: 12)
@@ -61,10 +70,9 @@ final class FeatureCell: UICollectionViewCell {
         if let playImage = AppIcons.MainPage.play {
             config.image = playImage.withRenderingMode(.alwaysTemplate)
         }
-        config.imagePlacement = .trailing // Иконка строго справа
-        config.imagePadding = 8           // Отступ 8pt от текста до стрелочки
-        
-        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        config.imagePlacement = .trailing
+        config.imagePadding = 8
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)
         
         var backgroundConfig = UIBackgroundConfiguration.clear()
         backgroundConfig.backgroundColor = UIColor.white.withAlphaComponent(0.3)
@@ -73,11 +81,16 @@ final class FeatureCell: UICollectionViewCell {
         config.background = backgroundConfig
         button.configuration = config
         
+        // 2. Включаем Autoshrink для внутреннего текстового поля кнопки
+        if let titleLabel = button.titleLabel {
+            titleLabel.adjustsFontSizeToFitWidth = true
+            titleLabel.minimumScaleFactor = 0.8
+        }
+        
         button.isUserInteractionEnabled = false
         button.isHidden = true
         return button
     }()
-
     
     // MARK: - Init
     override init(frame: CGRect) {
@@ -96,6 +109,7 @@ final class FeatureCell: UICollectionViewCell {
     }
     
     // MARK: - Configuration
+  
     // MARK: - Configuration
     func configure(with item: FeatureItem) {
         titleLabel.text = item.title
@@ -110,18 +124,28 @@ final class FeatureCell: UICollectionViewCell {
             iconImageView.image = AppIcons.MainPage.summarize
         }
         
-        let subtitleFont = FontFamily.Inter.regular(size: 14)
+        // 1. Измеряем высоту экрана для адаптивной типографики
+        let screenHeight = UIScreen.main.bounds.height
+        let isSmallScreen = screenHeight <= 667 // Флаг для iPhone SE
+        
+        // Подбираем шрифты в зависимости от размера устройства
+        let titleFont: UIFont
+        let subtitleFont: UIFont
         
         if item.isGradient {
             // --- ЛЕВАЯ КАРТОЧКА ---
             backgroundColor = .clear
             gradientLayer.isHidden = false
             waveImageView.isHidden = false
-            titleLabel.font = FontFamily.Inter.medium(size: 20)
+            
+            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 18) : FontFamily.Inter.medium(size: 20)
+            subtitleFont = FontFamily.Inter.regular(size: 14)
+            titleLabel.font = titleFont
             
             subtitleView.configure(with: item.subtitleParts,
                                    font: subtitleFont,
-                                   textColor: AppColors.accent.withAlphaComponent(0.7))
+                                   textColor: AppColors.accent.withAlphaComponent(0.7),
+                                   alignment: .left)
             
             subtitleView.snp.remakeConstraints { make in
                 make.top.equalTo(titleLabel.snp.bottom).offset(12)
@@ -134,21 +158,28 @@ final class FeatureCell: UICollectionViewCell {
             backgroundColor = AppColors.card
             gradientLayer.isHidden = true
             waveImageView.isHidden = true
-            titleLabel.font = FontFamily.Inter.medium(size: 16)
+            
+            //На маленьком SE ужимаем шрифт до 14pt, чтобы слова не налезали друг на друга!
+            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 14) : FontFamily.Inter.medium(size: 16)
+            subtitleFont = isSmallScreen ? FontFamily.Inter.regular(size: 12) : FontFamily.Inter.regular(size: 14)
+            titleLabel.font = titleFont
             
             subtitleView.configure(with: item.subtitleParts,
                                    font: subtitleFont,
-                                   textColor: AppColors.placeholderText)
+                                   textColor: AppColors.placeholderText,
+                                   alignment: .center)
+            
+            // На SE поджимаем подзаголовок к самому низу плотнее, освобождая вертикаль
+            let bottomOffset: CGFloat = isSmallScreen ? -10 : -16
             
             subtitleView.snp.remakeConstraints { make in
-                make.leading.equalTo(titleLabel.snp.leading)
+                make.leading.equalToSuperview().offset(16)
                 make.trailing.equalToSuperview().offset(-16)
-                make.bottom.equalToSuperview().offset(-16)
+                make.bottom.equalToSuperview().offset(bottomOffset)
                 make.height.equalTo(18)
             }
         }
     }
-
     
     // MARK: - Setup
     private func setupCell() {
@@ -177,33 +208,39 @@ final class FeatureCell: UICollectionViewCell {
     }
     
     private func setupConstraints() {
-        // Фоновая картинка волны растянута на весь экран карточки
         waveImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        // Подложка иконки 48х48 с верхним отступом 24pt
+        // 1. Измеряем высоту экрана прямо для констрейнтов
+        let screenHeight = UIScreen.main.bounds.height
+        let isSmallScreen = screenHeight <= 667 // Флаг для iPhone SE
+        
+        // Адаптивные отступы: на SE поднимаем иконку выше (12pt вместо 24pt)
+        let topOffset: CGFloat = isSmallScreen ? 12 : 24
+        let titleTopOffset: CGFloat = isSmallScreen ? 6 : 12
+        
         iconImageView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(24)
+            make.top.equalToSuperview().offset(topOffset) // Адаптивный верхний отступ
             make.leading.equalToSuperview().offset(16)
             make.width.height.equalTo(48)
         }
         
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(iconImageView.snp.bottom).offset(12)
+            make.top.equalTo(iconImageView.snp.bottom).offset(titleTopOffset) // Плотный зазор на SE
             make.leading.trailing.equalToSuperview().inset(16)
         }
         
+        // Базовые горизонтальные ограничения для подзаголовка
         subtitleView.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(12)
             make.leading.equalTo(titleLabel.snp.leading)
-            make.height.equalTo(18) // Высота одной строки
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(18)
         }
         
-        // Кнопка плеера жестко закреплена внизу ячейки
         actionButton.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(11.5)
-            make.trailing.equalToSuperview().offset(-11.5)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.bottom.equalToSuperview().offset(-16)
             make.height.equalTo(32)
         }
