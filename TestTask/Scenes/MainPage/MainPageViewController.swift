@@ -15,7 +15,7 @@ final class MainPageViewController: UIViewController {
     private let router: WeakRouter<MainRoute>
     
     // MARK: - UI Components
-    private let backgroundView = BackgroundView()
+    private let backgroundView = GradientBackgroundView()
     
     private let settingsButton: UIButton = {
         let button = UIButton(type: .system)

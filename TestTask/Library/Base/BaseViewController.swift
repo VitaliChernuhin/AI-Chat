@@ -13,10 +13,6 @@ class BaseViewController<R: Route>: UIViewController {
     
     // MARK: - Properties
     let router: WeakRouter<R>
-    
-    // MARK: - UI Components
-    private let backgroundView = BackgroundView()
-    
     let navigationBar: AppNavigationBar
     
     // MARK: - Init
@@ -40,15 +36,12 @@ class BaseViewController<R: Route>: UIViewController {
     
     // MARK: - Private Setup
     private func setupBaseViews() {
-        view.addSubview(backgroundView)
+        // Устанавливаем дефолтный плотный цвет фона из дизайна для всех обычных экранов
+        view.backgroundColor = AppColors.background
         view.addSubview(navigationBar)
     }
     
     private func setupBaseConstraints() {
-        backgroundView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        
         navigationBar.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(44)
@@ -57,9 +50,10 @@ class BaseViewController<R: Route>: UIViewController {
     
     private func setupBaseActions() {
         navigationBar.onBackTapped = { [weak self] in
-            if let navigationRoute = R.self as? MainRoute.Type {
+            if let _ = R.self as? MainRoute.Type {
                 (self?.router as? WeakRouter<MainRoute>)?.trigger(.back)
             }
         }
     }
 }
+

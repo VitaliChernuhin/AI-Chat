@@ -36,7 +36,7 @@
 				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,
 				Views/AppNavigationBar.swift,
-				Views/BackgroundView.swift,
+				Views/GradientBackgroundView.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};

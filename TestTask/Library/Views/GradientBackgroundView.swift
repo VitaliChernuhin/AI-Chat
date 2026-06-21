@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 
-final class BackgroundView: UIView {
+final class GradientBackgroundView: UIView {
     
     // MARK: - UI Components
 
