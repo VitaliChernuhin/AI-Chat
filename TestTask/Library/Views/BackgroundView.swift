@@ -93,6 +93,3 @@ final class BackgroundView: UIView {
         }
     }
 }
-
-
-

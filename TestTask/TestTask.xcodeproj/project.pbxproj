@@ -31,6 +31,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Helpers/AppColors.swift,
+				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,
 				Views/BackgroundView.swift,
 			);
