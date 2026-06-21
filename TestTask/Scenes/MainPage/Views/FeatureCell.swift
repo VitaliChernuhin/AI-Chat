@@ -46,33 +46,38 @@ final class FeatureCell: UICollectionViewCell {
     
     private let subtitleView = FeatureSubtitleView()
     
-    // Капсульная кнопка плеера "Ready in seconds"
     private let actionButton: UIButton = {
         let button = UIButton(type: .system)
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
-        button.layer.cornerRadius = 14
         
         var config = UIButton.Configuration.plain()
         config.title = "Ready in seconds"
         config.baseForegroundColor = AppColors.accent
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
             var outgoing = incoming
-            outgoing.font = FontFamily.Inter.medium(size: 12)
+            outgoing.font = FontFamily.Inter.regular(size: 12)
             return outgoing
         }
         
-        if let playImage = UIImage(systemName: "play.fill") {
+        if let playImage = AppIcons.MainPage.play {
             config.image = playImage.withRenderingMode(.alwaysTemplate)
         }
-        config.imagePlacement = .trailing
-        config.imagePadding = 6
-        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)
+        config.imagePlacement = .trailing // Иконка строго справа
+        config.imagePadding = 8           // Отступ 8pt от текста до стрелочки
         
+        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+        
+        var backgroundConfig = UIBackgroundConfiguration.clear()
+        backgroundConfig.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        backgroundConfig.cornerRadius = 16
+        
+        config.background = backgroundConfig
         button.configuration = config
+        
         button.isUserInteractionEnabled = false
         button.isHidden = true
         return button
     }()
+
     
     // MARK: - Init
     override init(frame: CGRect) {
@@ -113,7 +118,6 @@ final class FeatureCell: UICollectionViewCell {
             waveImageView.isHidden = false
             titleLabel.font = FontFamily.Inter.medium(size: 20)
             
-            // ОБНОВИЛИ: Чистый белый с прозрачностью 70% по замеру 🌟
             subtitleView.configure(with: item.subtitleParts,
                                    font: subtitleFont,
                                    textColor: AppColors.accent.withAlphaComponent(0.7))
@@ -128,7 +132,7 @@ final class FeatureCell: UICollectionViewCell {
                                    font: subtitleFont,
                                    textColor: AppColors.placeholderText)
         }
-
+        
     }
     
     // MARK: - Setup
@@ -136,7 +140,6 @@ final class FeatureCell: UICollectionViewCell {
         layer.cornerRadius = 24
         clipsToBounds = true
         
-        // Настройка оригинальной палитры градиента сверху вниз из Figma
         gradientLayer.colors = [
             UIColor(red: 0.44, green: 0.53, blue: 0.71, alpha: 1.0).cgColor,
             UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0).cgColor
@@ -176,11 +179,9 @@ final class FeatureCell: UICollectionViewCell {
             make.leading.trailing.equalToSuperview().inset(16)
         }
         
-        // Позиционируем наш новый кастомный StackView подзаголовка
         subtitleView.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(12)
             make.leading.equalTo(titleLabel.snp.leading)
-//            make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(18) // Высота одной строки
         }
         

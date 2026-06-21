@@ -41,6 +41,10 @@ enum AppIcons {
         static var bulletDot: UIImage? {
             return UIImage(named: "ic_bullet_dot")
         }
+        
+        static var play: UIImage? {
+            return UIImage(named: "play")
+        }
     }
     
     enum NavigationBar {
