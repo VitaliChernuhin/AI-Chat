@@ -59,9 +59,12 @@ final class MainPageViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.showsVerticalScrollIndicator = false
+        
+        // Используем динамическое свойство из расширения протокола 🌟
         collectionView.register(FeatureCell.self, forCellWithReuseIdentifier: FeatureCell.reuseIdentifier)
         return collectionView
     }()
+    
     
     // MARK: - Init
     init(router: WeakRouter<MainRoute>) {

@@ -22,14 +22,14 @@ struct FeatureItem {
         }
     }
     
-    var subtitle: String {
+    var subtitleParts: [String] {
         switch type {
         case .turnPhotoToVideo:
-            return "Animate • Templates"
+            return ["Animate", "Templates"]
         case .fixWriting:
-            return "Rewrite • Fix grammar"
+            return ["Rewrite", "Fix grammar"]
         case .summarize:
-            return "Summarize • Key points"
+            return ["Summarize", "Key points"]
         }
     }
     

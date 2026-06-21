@@ -28,6 +28,7 @@
 				MainPage/Model/FeatureType.swift,
 				MainPage/Views/AskAnyButton.swift,
 				MainPage/Views/FeatureCell.swift,
+				MainPage/Views/FeatureSubtitleView.swift,
 				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
@@ -36,6 +37,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Base/BaseViewController.swift,
+				"Extensions/UIView+Reusable.swift",
 				Helpers/AppColors.swift,
 				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,

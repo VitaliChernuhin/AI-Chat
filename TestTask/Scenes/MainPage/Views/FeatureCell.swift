@@ -10,11 +10,22 @@ import SnapKit
 
 final class FeatureCell: UICollectionViewCell {
     
-    static let reuseIdentifier = "FeatureCell"
-    
     // MARK: - UI Components
     private let gradientLayer = CAGradientLayer()
     
+    // Векторная волнистая линия фонового рисунка
+    private let waveImageView: UIImageView = {
+        let imageView = UIImageView()
+        if let waveImage = AppIcons.MainPage.bgWaveLine {
+            imageView.image = waveImage
+        }
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.isHidden = true // Скрыта для правых темных карточек
+        return imageView
+    }()
+    
+    // Белая круглая подложка под иконку фичи
     private let iconImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .center
@@ -25,6 +36,7 @@ final class FeatureCell: UICollectionViewCell {
         return imageView
     }()
     
+    // Заголовок карточки (Medium 20 для левой, Medium 16 для правых)
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = AppColors.accent
@@ -32,13 +44,9 @@ final class FeatureCell: UICollectionViewCell {
         return label
     }()
     
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.font = FontFamily.Inter.regular(size: 13)
-        label.numberOfLines = 1
-        return label
-    }()
+    private let subtitleView = FeatureSubtitleView()
     
+    // Капсульная кнопка плеера "Ready in seconds"
     private let actionButton: UIButton = {
         let button = UIButton(type: .system)
         button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
@@ -79,16 +87,14 @@ final class FeatureCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = bounds
+        gradientLayer.frame = contentView.bounds
     }
     
     // MARK: - Configuration
     func configure(with item: FeatureItem) {
         titleLabel.text = item.title
-        subtitleLabel.text = item.subtitle
         actionButton.isHidden = !item.hasActionButton
         
-        // Мапим строковое имя иконки из чистой модели в UIImage из UI-кита 🌟
         switch item.type {
         case .turnPhotoToVideo:
             iconImageView.image = AppIcons.MainPage.turnPhotoToVideo
@@ -98,19 +104,31 @@ final class FeatureCell: UICollectionViewCell {
             iconImageView.image = AppIcons.MainPage.summarize
         }
         
+        let subtitleFont = FontFamily.Inter.regular(size: 14)
+        
         if item.isGradient {
-            // Левая большая карточка
+            // --- ЛЕВАЯ КАРТОЧКА ---
             backgroundColor = .clear
             gradientLayer.isHidden = false
-            subtitleLabel.textColor = AppColors.accent.withAlphaComponent(0.6)
-            titleLabel.font = FontFamily.Inter.medium(size: 20) // Крупный размер 20
+            waveImageView.isHidden = false
+            titleLabel.font = FontFamily.Inter.medium(size: 20)
+            
+            // ОБНОВИЛИ: Чистый белый с прозрачностью 70% по замеру 🌟
+            subtitleView.configure(with: item.subtitleParts,
+                                   font: subtitleFont,
+                                   textColor: AppColors.accent.withAlphaComponent(0.7))
         } else {
-            // Правые карточки
+            // --- ПРАВЫЕ КАРТОЧКИ ---
             backgroundColor = AppColors.card
             gradientLayer.isHidden = true
-            subtitleLabel.textColor = AppColors.placeholderText
-            titleLabel.font = FontFamily.Inter.medium(size: 16) // Аккуратный размер 16
+            waveImageView.isHidden = true
+            titleLabel.font = FontFamily.Inter.medium(size: 16)
+            
+            subtitleView.configure(with: item.subtitleParts,
+                                   font: subtitleFont,
+                                   textColor: AppColors.placeholderText)
         }
+
     }
     
     // MARK: - Setup
@@ -118,39 +136,58 @@ final class FeatureCell: UICollectionViewCell {
         layer.cornerRadius = 24
         clipsToBounds = true
         
+        // Настройка оригинальной палитры градиента сверху вниз из Figma
         gradientLayer.colors = [
             UIColor(red: 0.44, green: 0.53, blue: 0.71, alpha: 1.0).cgColor,
             UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0).cgColor
         ]
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
         gradientLayer.isHidden = true
-        layer.insertSublayer(gradientLayer, at: 0)
         
+        // Вставляем градиент на самый задний план слоя contentView.layer
+        contentView.layer.insertSublayer(gradientLayer, at: 0)
+        
+        // Волна ложится вторым слоем, строго поверх градиентной подложки
+        contentView.addSubview(waveImageView)
+        
+        // Элементы интерфейса карточки
         contentView.addSubview(iconImageView)
         contentView.addSubview(titleLabel)
-        contentView.addSubview(subtitleLabel)
+        contentView.addSubview(subtitleView)
         contentView.addSubview(actionButton)
     }
     
     private func setupConstraints() {
+        // Фоновая картинка волны растянута на весь экран карточки
+        waveImageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        // Подложка иконки 48х48 с верхним отступом 24pt
         iconImageView.snp.makeConstraints { make in
-            make.top.leading.equalToSuperview().offset(20)
-            make.width.height.equalTo(48) // Идеальный круг под cornerRadius = 24
+            make.top.equalToSuperview().offset(24)
+            make.leading.equalToSuperview().offset(16)
+            make.width.height.equalTo(48)
         }
         
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(iconImageView.snp.bottom).offset(16)
-            make.leading.trailing.equalToSuperview().inset(20)
+            make.top.equalTo(iconImageView.snp.bottom).offset(12)
+            make.leading.trailing.equalToSuperview().inset(16)
         }
         
-        subtitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(8)
-            make.leading.trailing.equalToSuperview().inset(20)
+        // Позиционируем наш новый кастомный StackView подзаголовка
+        subtitleView.snp.makeConstraints { make in
+            make.top.equalTo(titleLabel.snp.bottom).offset(12)
+            make.leading.equalTo(titleLabel.snp.leading)
+//            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(18) // Высота одной строки
         }
         
+        // Кнопка плеера жестко закреплена внизу ячейки
         actionButton.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16)
+            make.leading.equalToSuperview().offset(11.5)
+            make.trailing.equalToSuperview().offset(-11.5)
             make.bottom.equalToSuperview().offset(-16)
             make.height.equalTo(32)
         }

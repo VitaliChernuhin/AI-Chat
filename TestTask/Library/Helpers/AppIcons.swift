@@ -33,6 +33,14 @@ enum AppIcons {
         static var summarize: UIImage? {
             return UIImage(named: "summarize")
         }
+        
+        static var bgWaveLine: UIImage? {
+            return UIImage(named: "bg_wave_line")
+        }
+        
+        static var bulletDot: UIImage? {
+            return UIImage(named: "ic_bullet_dot")
+        }
     }
     
     enum NavigationBar {
