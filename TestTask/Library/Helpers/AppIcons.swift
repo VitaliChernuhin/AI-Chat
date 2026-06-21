@@ -17,6 +17,10 @@ enum AppIcons {
         static var logo: UIImage? {
             return UIImage(named: "logo")
         }
+        
+        static var askAny: UIImage? {
+            return UIImage(named: "ask_any")
+        }
     }
     
     enum NavigationBar {

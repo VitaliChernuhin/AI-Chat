@@ -20,5 +20,9 @@ enum AppColors {
     static let settingsIcon = UIColor(red: 110/255, green: 100/255, blue: 108/255, alpha: 1.0)
     
     static let navBarBackground = UIColor(red: 10/255, green: 7/255, blue: 14/255, alpha: 1.0)
+    
+    static let askAnyBackground = UIColor(red: 24/255, green: 20/255, blue: 26/255, alpha: 1.0)
+    
+    static let placeholderText = UIColor(red: 139/255, green: 137/255, blue: 140/255, alpha: 1.0)
 }
 
