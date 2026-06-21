@@ -24,6 +24,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				MainPage/MainPageViewController.swift,
+				MainPage/Model/FeatureItem.swift,
+				MainPage/Model/FeatureType.swift,
+				MainPage/Views/AskAnyButton.swift,
+				MainPage/Views/FeatureCell.swift,
 				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
@@ -36,7 +40,6 @@
 				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,
 				Views/AppNavigationBar.swift,
-				Views/AskAnyButton.swift,
 				Views/GradientBackgroundView.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;

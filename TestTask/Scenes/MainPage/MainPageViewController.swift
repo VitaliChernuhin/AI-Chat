@@ -14,6 +14,12 @@ final class MainPageViewController: UIViewController {
     // MARK: - Properties
     private let router: WeakRouter<MainRoute>
     
+    private let features: [FeatureItem] = [
+        FeatureItem(type: .turnPhotoToVideo),
+        FeatureItem(type: .fixWriting),
+        FeatureItem(type: .summarize)
+    ]
+    
     // MARK: - UI Components
     private let backgroundView = GradientBackgroundView()
     
@@ -46,6 +52,17 @@ final class MainPageViewController: UIViewController {
     
     private let askButton = AskAnyButton(type: .system)
     
+    private lazy var collectionView: UICollectionView = {
+        let layout = createCompositionalLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .clear
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.register(FeatureCell.self, forCellWithReuseIdentifier: FeatureCell.reuseIdentifier)
+        return collectionView
+    }()
+    
     // MARK: - Init
     init(router: WeakRouter<MainRoute>) {
         self.router = router
@@ -76,6 +93,7 @@ final class MainPageViewController: UIViewController {
         view.addSubview(logoImageView)
         view.addSubview(mainTitleLabel)
         view.addSubview(askButton)
+        view.addSubview(collectionView)
     }
     
     private func setupConstraints() {
@@ -106,6 +124,12 @@ final class MainPageViewController: UIViewController {
             make.leading.trailing.equalToSuperview().inset(16)
             make.height.equalTo(56)
         }
+        
+        collectionView.snp.makeConstraints { make in
+            make.top.equalTo(askButton.snp.bottom).offset(24)
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-10)
+        }
     }
     
     private func setupActions() {
@@ -120,5 +144,69 @@ final class MainPageViewController: UIViewController {
     
     @objc private func askButtonTapped() {
         print("Нажали на плашку чата!")
+    }
+}
+
+// MARK: - Composition layout
+extension MainPageViewController {
+    private func createCompositionalLayout() -> UICollectionViewLayout {
+        return UICollectionViewCompositionalLayout { _, _ in
+            
+            // 1. ЛЕВАЯ КАРТОЧКА (50% ширины всей группы, 100% высоты)
+            let leftItem = NSCollectionLayoutItem(
+                layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
+                                                   heightDimension: .fractionalHeight(1.0))
+            )
+            leftItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
+            
+            // 2. ПРАВЫЕ КАРТОЧКИ (100% ширины правой подгруппы, по 50% высоты каждая)
+            let rightItem = NSCollectionLayoutItem(
+                layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                                   heightDimension: .fractionalHeight(0.5))
+            )
+            rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 12, trailing: 0)
+            
+            // Объединяем правые карточки в одну вертикальную группу
+            let rightGroup = NSCollectionLayoutGroup.vertical(
+                layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
+                                                   heightDimension: .fractionalHeight(1.0)),
+                subitems: [rightItem]
+            )
+            
+            // 3. ГЛАВНАЯ СТРОКА (Соединяет левую и правую части в Bento-сетку)
+            let mainGroup = NSCollectionLayoutGroup.horizontal(
+                layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                                   heightDimension: .absolute(370)), // Суммарная высота сетки
+                subitems: [leftItem, rightGroup]
+            )
+            
+            let section = NSCollectionLayoutSection(group: mainGroup)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 20, trailing: 16)
+            
+            return section
+        }
+    }
+}
+
+// MARK: - UICollectionView Data Source & Delegate
+extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return features.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeatureCell.reuseIdentifier, for: indexPath) as? FeatureCell else {
+            return UICollectionViewCell()
+        }
+        cell.configure(with: features[indexPath.item])
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let selectedItem = features[indexPath.item]
+        print("Нажали на карточку Bento: \(selectedItem.title)")
+        
+        // В следующем шаге мы завяжем здесь красивый switch по selectedItem.type
     }
 }

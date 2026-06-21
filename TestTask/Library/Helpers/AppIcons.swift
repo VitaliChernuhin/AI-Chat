@@ -21,6 +21,18 @@ enum AppIcons {
         static var askAny: UIImage? {
             return UIImage(named: "ask_any")
         }
+        
+        static var turnPhotoToVideo: UIImage? {
+            return UIImage(named: "turn_photo_to_video")
+        }
+        
+        static var fixWriting: UIImage? {
+            return UIImage(named: "fix_writing")
+        }
+        
+        static var summarize: UIImage? {
+            return UIImage(named: "summarize")
+        }
     }
     
     enum NavigationBar {
@@ -28,5 +40,4 @@ enum AppIcons {
             return UIImage(named: "navBar_back")
         }
     }
-    
 }
