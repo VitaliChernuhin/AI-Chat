@@ -174,15 +174,11 @@ final class MainPageViewController: UIViewController {
 // MARK: - Composition layout
 extension MainPageViewController {
     
+    // MARK: - Compositional Layout Magic 🌟
     private func createCompositionalLayout() -> UICollectionViewLayout {
         return UICollectionViewCompositionalLayout { _, _ in
             
-            // 1. Измеряем общую высоту экрана устройства
             let screenHeight = UIScreen.main.bounds.height
-            
-            // 2. ДИНАМИЧЕСКИЙ РАСЧЕТ ВЫСОТЫ СЕТКИ
-            // Если это iPhone SE (высота 667pt), даем сетке компактные 260pt.
-            // Если экран большой (iPhone 11/13/15/17) 335pt!
             let bentoGridHeight: CGFloat = screenHeight <= 667 ? 255 : 335
             
             // 1. ЛЕВАЯ КАРТОЧКА
@@ -190,30 +186,27 @@ extension MainPageViewController {
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                    heightDimension: .fractionalHeight(1.0))
             )
-            leftItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
+            leftItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4)
             
             // 2. ПРАВЫЕ КАРТОЧКИ
             let rightItem = NSCollectionLayoutItem(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                    heightDimension: .fractionalHeight(0.5))
             )
-            rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
+            rightItem.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0)
             
-            // Вертикальная группа для правых карточек
+            // Вертикальная группа для правой колонки
             let rightGroup = NSCollectionLayoutGroup.vertical(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                    heightDimension: .fractionalHeight(1.0)),
                 subitems: [rightItem]
             )
             
-            // На SE делаем шаг между правыми карточками чуть плотнее (8pt вместо 12pt), чтобы выиграть место!
-            let spacingBetweenCards: CGFloat = screenHeight <= 667 ? 8 : 12
-            rightGroup.interItemSpacing = .fixed(spacingBetweenCards)
+            rightGroup.interItemSpacing = .fixed(8)
             
-            // 3. ГЛАВНАЯ ГРУППА СЕТКИ С ДИНАМИЧЕСКОЙ ВЫСОТОЙ
+            // 3. ГЛАВНАЯ ГРУППА СЕТКИ
             let mainGroup = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   // Прокидываем адаптивную высоту
                                                    heightDimension: .absolute(bentoGridHeight)),
                 subitems: [leftItem, rightGroup]
             )

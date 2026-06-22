@@ -109,8 +109,6 @@ final class FeatureCell: UICollectionViewCell {
     }
     
     // MARK: - Configuration
-  
-    // MARK: - Configuration
     func configure(with item: FeatureItem) {
         titleLabel.text = item.title
         actionButton.isHidden = !item.hasActionButton
@@ -128,19 +126,25 @@ final class FeatureCell: UICollectionViewCell {
         let screenHeight = UIScreen.main.bounds.height
         let isSmallScreen = screenHeight <= 667 // Флаг для iPhone SE
         
-        // Подбираем шрифты в зависимости от размера устройства
         let titleFont: UIFont
         let subtitleFont: UIFont
+        
+        if item.isGradient {
+            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 18) : FontFamily.Inter.medium(size: 20)
+            subtitleFont = FontFamily.Inter.regular(size: 14)
+        } else {
+            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 14) : FontFamily.Inter.medium(size: 16)
+            subtitleFont = isSmallScreen ? FontFamily.Inter.regular(size: 12) : FontFamily.Inter.regular(size: 14)
+        }
+        
+        // Применяем вычисленный шрифт к заголовку ячейки
+        titleLabel.font = titleFont
         
         if item.isGradient {
             // --- ЛЕВАЯ КАРТОЧКА ---
             backgroundColor = .clear
             gradientLayer.isHidden = false
             waveImageView.isHidden = false
-            
-            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 18) : FontFamily.Inter.medium(size: 20)
-            subtitleFont = FontFamily.Inter.regular(size: 14)
-            titleLabel.font = titleFont
             
             subtitleView.configure(with: item.subtitleParts,
                                    font: subtitleFont,
@@ -159,22 +163,16 @@ final class FeatureCell: UICollectionViewCell {
             gradientLayer.isHidden = true
             waveImageView.isHidden = true
             
-            //На маленьком SE ужимаем шрифт до 14pt, чтобы слова не налезали друг на друга!
-            titleFont = isSmallScreen ? FontFamily.Inter.medium(size: 14) : FontFamily.Inter.medium(size: 16)
-            subtitleFont = isSmallScreen ? FontFamily.Inter.regular(size: 12) : FontFamily.Inter.regular(size: 14)
-            titleLabel.font = titleFont
-            
             subtitleView.configure(with: item.subtitleParts,
                                    font: subtitleFont,
                                    textColor: AppColors.placeholderText,
-                                   alignment: .center)
+                                   alignment: .left)
             
-            // На SE поджимаем подзаголовок к самому низу плотнее, освобождая вертикаль
             let bottomOffset: CGFloat = isSmallScreen ? -10 : -16
             
             subtitleView.snp.remakeConstraints { make in
-                make.leading.equalToSuperview().offset(16)
-                make.trailing.equalToSuperview().offset(-16)
+                make.leading.equalTo(titleLabel.snp.leading) // Идеальная соосность по левому краю заголовка 🌟
+                make.trailing.equalToSuperview().offset(-8)
                 make.bottom.equalToSuperview().offset(bottomOffset)
                 make.height.equalTo(18)
             }
