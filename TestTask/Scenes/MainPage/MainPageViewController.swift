@@ -182,7 +182,7 @@ extension MainPageViewController {
             
             // 2. ДИНАМИЧЕСКИЙ РАСЧЕТ ВЫСОТЫ СЕТКИ
             // Если это iPhone SE (высота 667pt), даем сетке компактные 260pt.
-            // Если экран большой (iPhone 11/13/15/17), оставляем твои идеальные 335pt!
+            // Если экран большой (iPhone 11/13/15/17) 335pt!
             let bentoGridHeight: CGFloat = screenHeight <= 667 ? 255 : 335
             
             // 1. ЛЕВАЯ КАРТОЧКА
