@@ -23,6 +23,7 @@
 		5F5CE1442FE6D50500760AA3 /* Exceptions for "Scenes" folder in "TestTask" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AIChat/AIChatViewController.swift,
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
 				MainPage/Model/FeatureType.swift,

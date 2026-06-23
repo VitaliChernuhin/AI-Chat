@@ -51,5 +51,13 @@ enum AppIcons {
         static var back: UIImage? {
             return UIImage(named: "navBar_back")
         }
+        
+        static var chatAvatar: UIImage? {
+            return UIImage(named: "ic_chat_avatar")
+        }
+        
+        static var history: UIImage? {
+            return UIImage(named: "ic_history")
+        }
     }
 }

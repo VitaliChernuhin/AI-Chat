@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import XCoordinator
 
 final class SettingsViewController: BaseViewController<MainRoute> {
     
@@ -20,6 +21,21 @@ final class SettingsViewController: BaseViewController<MainRoute> {
         label.numberOfLines = 2
         return label
     }()
+    
+    // MARK: Life cycle
+    init(router: WeakRouter<MainRoute>) {
+        super.init(
+            title: "Settings",
+            subtitle: nil,
+            avatarImage: nil,
+            rightImage: nil,
+            router: router
+        )
+    }
+    
+    @MainActor required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {

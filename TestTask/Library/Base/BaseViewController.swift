@@ -16,9 +16,9 @@ class BaseViewController<R: Route>: UIViewController {
     let navigationBar: AppNavigationBar
     
     // MARK: - Init
-    init(title: String, router: WeakRouter<R>) {
+    init(title: String, subtitle: String? = nil, avatarImage: UIImage? = nil, rightImage: UIImage? = nil, router: WeakRouter<R>) {
         self.router = router
-        self.navigationBar = AppNavigationBar(title: title)
+        self.navigationBar = AppNavigationBar(title: title, subtitle: subtitle, avatarImage: avatarImage, rightImage: rightImage)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -34,9 +34,12 @@ class BaseViewController<R: Route>: UIViewController {
         setupBaseActions()
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     // MARK: - Private Setup
     private func setupBaseViews() {
-        // Устанавливаем дефолтный плотный цвет фона из дизайна для всех обычных экранов
         view.backgroundColor = AppColors.background
         view.addSubview(navigationBar)
     }
@@ -44,7 +47,7 @@ class BaseViewController<R: Route>: UIViewController {
     private func setupBaseConstraints() {
         navigationBar.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.top).offset(44)
+            make.height.equalTo(129)
         }
     }
     
@@ -56,4 +59,3 @@ class BaseViewController<R: Route>: UIViewController {
         }
     }
 }
-

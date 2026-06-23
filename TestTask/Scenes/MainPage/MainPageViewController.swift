@@ -167,7 +167,7 @@ final class MainPageViewController: UIViewController {
     }
     
     @objc private func askButtonTapped() {
-        print("Нажали на плашку чата!")
+        router.trigger(.aiChat)
     }
 }
 

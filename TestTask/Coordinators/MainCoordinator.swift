@@ -12,6 +12,7 @@ enum MainRoute: Route {
     case mainPage
     case settings
     case back
+    case aiChat
 }
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
@@ -45,6 +46,12 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             }
         case .back:
             return .pop()
+            
+        case .aiChat:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureAIChatScene(router: currentRouter)
+                return .push(viewController)
+            }
         }
     }
     
@@ -55,7 +62,12 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
     @MainActor
     private static func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
-         SettingsViewController(title: "Settings", router: router)
+         SettingsViewController(router: router)
+    }
+    
+    @MainActor
+    private static func configureAIChatScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        AIChatViewController(router: router)
     }
     
 }
