@@ -24,6 +24,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AIChat/AIChatViewController.swift,
+				AIChat/Views/ChatInputView.swift,
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
 				MainPage/Model/FeatureType.swift,
@@ -38,6 +39,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Base/BaseViewController.swift,
+				"Extensions/Date+Format.swift",
+				"Extensions/UIColor+Hex.swift",
 				"Extensions/UIView+Reusable.swift",
 				Helpers/AppColors.swift,
 				Helpers/AppIcons.swift,

@@ -9,17 +9,27 @@ import UIKit
 import SnapKit
 import XCoordinator
 
-
 final class AIChatViewController: BaseViewController<MainRoute> {
     
-    
     // MARK: - UI Components
+    private let chatContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .red
+        return view
+    }()
     
-    // Большой приветственный заголовок
+    private let welcomeStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 8
+        return stack
+    }()
+    
     private let welcomeTitleLabel: UILabel = {
         let label = UILabel()
         label.textColor = AppColors.accent
-        label.font = FontFamily.Inter.bold(size: 22)
+        label.font = FontFamily.Inter.semiBold(size: 20)
         label.textAlignment = .center
         label.numberOfLines = 2
         
@@ -27,56 +37,27 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         let attributedString = NSMutableAttributedString(string: text)
         if let range = text.range(of: "AI assistant") {
             let nsRange = NSRange(range, in: text)
-            // Розово-фиолетовый акцент на фразу из Bento-градиента
             attributedString.addAttribute(.foregroundColor, value: UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0), range: nsRange)
         }
         label.attributedText = attributedString
         return label
     }()
     
-    // Подзаголовок приветствия
-    private let welcomeSubtitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Ask questions, get answers, and explore ideas\nin seconds"
-        label.textColor = AppColors.navBarSubtitle // Твой мягкий серый цвет
-        label.font = FontFamily.Inter.regular(size: 14)
-        label.textAlignment = .center
-        label.numberOfLines = 2
-        return label
-    }()
-    
-    // Нижняя плашка ввода
     private let inputContainerView: UIView = {
         let view = UIView()
-        view.backgroundColor = AppColors.askAnyBackground
+        view.backgroundColor = AppColors.chatAskAnythingBackground
         view.layer.cornerRadius = 24
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         return view
     }()
     
-    private let textField: UITextField = {
-        let field = UITextField()
-        // Применяем твой новый подогнанный темный цвет плейсхолдера (89, 86, 91) 🌟
-        field.attributedPlaceholder = NSAttributedString(
-            string: "Ask anything...",
-            attributes: [NSAttributedString.Key.foregroundColor: AppColors.placeholderText]
-        )
-        field.textColor = AppColors.accent
-        field.font = FontFamily.Inter.regular(size: 15)
-        return field
-    }()
-    
-    private let sendButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "arrow.up.circle.fill"), for: .normal)
-        button.tintColor = AppColors.accent.withAlphaComponent(0.6)
-        return button
-    }()
+    private let inputBarView = ChatInputView()
     
     // MARK: - Init
     init(router: WeakRouter<MainRoute>) {
         super.init(
             title: "AI Chat",
-            subtitle: "26.03.2026",
+            subtitle: Date().dotFormattedString,
             avatarImage: AppIcons.NavigationBar.chatAvatar,
             rightImage: AppIcons.NavigationBar.history,
             router: router
@@ -87,96 +68,104 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        // Обязательно вычищаем уведомления при уходе с экрана
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
         setupConstraints()
         setupActions()
-        setupKeyboardObservers()
+        setupKeyboardObservers() // Запускаем слежку за клавиатурой
     }
     
     // MARK: - Setup
     private func setupViews() {
-        // Базовый фоновый цвет страницы (10, 7, 14)
         view.backgroundColor = AppColors.background
         
-        view.addSubview(navigationBar)
-        view.addSubview(welcomeTitleLabel)
-        view.addSubview(welcomeSubtitleLabel)
-        view.addSubview(inputContainerView)
+        // Добавляем верхнюю рабочую область
+        view.addSubview(chatContainerView)
+        chatContainerView.addSubview(welcomeStackView)
+        welcomeStackView.addArrangedSubview(welcomeTitleLabel)
         
-        inputContainerView.addSubview(textField)
-        inputContainerView.addSubview(sendButton)
+        // Добавляем готовую панель ввода
+        view.addSubview(inputBarView)
     }
     
     private func setupConstraints() {
-        
-        // Поле ввода крепим к нижней границе safeArea
-        inputContainerView.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(16)
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
-            make.height.equalTo(52)
+        inputBarView.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom) // Ровно на безопасную зону
+            make.leading.trailing.equalToSuperview()
+            make.height.equalTo(88.0) // Фиксированная высота по дизайну
         }
         
-        // Центрированный контент держим на красивом расстоянии над инпутом
-        welcomeSubtitleLabel.snp.makeConstraints { make in
-            make.bottom.equalTo(inputContainerView.snp.top).offset(-180)
+        
+        chatContainerView.snp.makeConstraints { make in
+            make.top.equalTo(navigationBar.snp.top)
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(inputBarView.snp.top)
+        }
+        
+        welcomeStackView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
             make.leading.trailing.equalToSuperview().inset(32)
-        }
-        
-        welcomeTitleLabel.snp.makeConstraints { make in
-            make.bottom.equalTo(welcomeSubtitleLabel.snp.top).offset(-12)
-            make.leading.trailing.equalToSuperview().inset(32)
-        }
-        
-        textField.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16)
-            make.centerY.equalToSuperview()
-            make.trailing.equalTo(sendButton.snp.leading).offset(-8)
-        }
-        
-        sendButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().offset(-12)
-            make.centerY.equalToSuperview()
-            make.width.height.equalTo(32)
         }
     }
     
     private func setupActions() {
-        // Закрытие клавиатуры по тапу на любое свободное место экрана
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tapGesture)
+        // Чистим этот блок! Оставляем только базовое уведомление, если нужно
+        inputBarView.onStateChanged = nil
+        
+        inputBarView.onArrowTapped = { [weak self] in
+            self?.view.endEditing(true)
+        }
+        
+        inputBarView.onSendTapped = { [weak self] text in
+            print("Отправка: \(text)")
+        }
     }
     
-    // MARK: - Keyboard Animation
     private func setupKeyboardObservers() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardNotification),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardNotification),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
     
-    @objc private func keyboardWillShow(notification: NSNotification) {
-        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else { return }
+    @objc private func handleKeyboardNotification(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+              let curveRaw = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt else { return }
+        
+        let isKeyboardShowing = notification.name == UIResponder.keyboardWillShowNotification
         let keyboardHeight = keyboardFrame.cgRectValue.height
         
-        inputContainerView.snp.updateConstraints { make in
-        // Поднимаем инпут на высоту клавиатуры за вычетом отступа безопасной зоны
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-keyboardHeight + 34)
+        // Если клавиатура поднята — сдвигаем панель ровно на её высоту
+        let bottomOffset = isKeyboardShowing ? -keyboardHeight : 0
+        
+        inputBarView.snp.remakeConstraints { make in
+            // Привязываемся к самому низу ЭКРАНА, чтобы фон панели уходил под клавиатуру
+            make.bottom.equalToSuperview().offset(bottomOffset)
+            make.leading.trailing.equalToSuperview()
+            make.height.equalTo(88.0) // Высота всегда железно 88!
         }
         
-        UIView.animate(withDuration: 0.3) {
+        let animationOptions = UIView.AnimationOptions(rawValue: curveRaw << 16)
+        UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: {
             self.view.layoutIfNeeded()
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: NSNotification) {
-        inputContainerView.snp.updateConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
-        }
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
+        }, completion: nil)
     }
     
     @objc private func dismissKeyboard() {
