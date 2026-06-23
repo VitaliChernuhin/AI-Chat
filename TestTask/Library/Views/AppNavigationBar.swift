@@ -132,7 +132,7 @@ final class AppNavigationBar: UIView {
                 make.leading.greaterThanOrEqualTo(backButton.snp.trailing).offset(32)
                 make.trailing.lessThanOrEqualTo(rightButton.snp.leading).offset(-8)
             } else {
-                make.leading.equalTo(avatarImageView.snp.trailing).offset(32)
+                make.leading.equalTo(avatarImageView.snp.trailing).offset(12)
                 make.trailing.lessThanOrEqualTo(rightButton.snp.leading).offset(-8)
             }
         }
