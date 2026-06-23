@@ -132,7 +132,6 @@ final class ChatInputView: UIView {
         addSubview(sendButton)
         addSubview(microphoneButton)
         
-        // Вставляем градиент строго под иконку самолётика, чтобы она не перекрывалась
         if let imageView = sendButton.imageView {
             sendButton.layer
                 .insertSublayer(sendButtonGradientLayer, below: imageView.layer)
@@ -149,9 +148,8 @@ final class ChatInputView: UIView {
             make.width.height.equalTo(40)
         }
         
-        // Стрелка привязана к микрофону, но мы сохраняем ссылку на констрейнт
         arrowDownButton.snp.makeConstraints { make in
-            self.arrowTrailingConstraint = make.trailing.equalTo(microphoneButton.snp.leading).offset(-12).constraint
+            make.trailing.equalToSuperview().offset(-16).priority(999)
             make.centerY.equalTo(textField.snp.centerY)
             make.width.height.equalTo(40)
         }

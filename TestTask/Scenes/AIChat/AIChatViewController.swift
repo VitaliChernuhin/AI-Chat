@@ -102,9 +102,8 @@ final class AIChatViewController: BaseViewController<MainRoute> {
             make.height.equalTo(88.0) // Фиксированная высота по дизайну
         }
         
-        
         chatContainerView.snp.makeConstraints { make in
-            make.top.equalTo(navigationBar.snp.top)
+            make.top.equalTo(navigationBar.snp.bottom) // Изменено с .top на .bottom
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(inputBarView.snp.top)
         }
@@ -152,14 +151,18 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         let isKeyboardShowing = notification.name == UIResponder.keyboardWillShowNotification
         let keyboardHeight = keyboardFrame.cgRectValue.height
         
-        // Если клавиатура поднята — сдвигаем панель ровно на её высоту
-        let bottomOffset = isKeyboardShowing ? -keyboardHeight : 0
-        
         inputBarView.snp.remakeConstraints { make in
-            // Привязываемся к самому низу ЭКРАНА, чтобы фон панели уходил под клавиатуру
-            make.bottom.equalToSuperview().offset(bottomOffset)
+            if isKeyboardShowing {
+                // Когда клавиатура открыта — привязываемся к самому низу ЭКРАНА,
+                // вычитая высоту клавиатуры
+                make.bottom.equalToSuperview().offset(-keyboardHeight)
+            } else {
+                // Когда клавиатура скрыта — возвращаем привязку к Safe Area,
+                // чтобы панель стояла на месте и не падала вниз
+                make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            }
             make.leading.trailing.equalToSuperview()
-            make.height.equalTo(88.0) // Высота всегда железно 88!
+            make.height.equalTo(88.0)
         }
         
         let animationOptions = UIView.AnimationOptions(rawValue: curveRaw << 16)
@@ -167,6 +170,7 @@ final class AIChatViewController: BaseViewController<MainRoute> {
             self.view.layoutIfNeeded()
         }, completion: nil)
     }
+
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
