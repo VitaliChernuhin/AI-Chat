@@ -204,12 +204,18 @@ final class ChatInputView: UIView {
     func updateUI(for state: State, animated: Bool = true) {
         currentState = state
         
+        switch state {
+        case .normal:
+            self.setPlaceholder("How can I help you?")
+        case .editingEmpty, .editingWithText:
+            self.setPlaceholder("Ask anything...")
+        }
+        
         let block = { [weak self] in
             guard let self = self else { return }
             
             switch state {
             case .normal:
-                self.setPlaceholder("How can I help you?")
                 self.microphoneButton.alpha = 1.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
@@ -222,7 +228,6 @@ final class ChatInputView: UIView {
                 }
                 
             case .editingEmpty:
-                self.setPlaceholder("Ask anything...")
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
@@ -236,7 +241,6 @@ final class ChatInputView: UIView {
                 }
                 
             case .editingWithText:
-                self.setPlaceholder("Ask anything...")
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 0.0
                 self.sendButton.alpha = 1.0
@@ -259,7 +263,6 @@ final class ChatInputView: UIView {
         
         onStateChanged?(state)
     }
-    
     
     private func setPlaceholder(_ text: String) {
         textField.attributedPlaceholder = NSAttributedString(
