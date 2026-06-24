@@ -25,6 +25,7 @@
 			membershipExceptions = (
 				AIChat/AIChatViewController.swift,
 				AIChat/Views/ChatInputView.swift,
+				AIChat/Views/ChatWelcomeView.swift,
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
 				MainPage/Model/FeatureType.swift,
@@ -40,7 +41,7 @@
 			membershipExceptions = (
 				Base/BaseViewController.swift,
 				"Extensions/Date+Format.swift",
-				"Extensions/UIColor+Hex.swift",
+				"Extensions/UIColor+Extensions.swift",
 				"Extensions/UIView+Reusable.swift",
 				Helpers/AppColors.swift,
 				Helpers/AppIcons.swift,

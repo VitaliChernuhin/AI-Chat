@@ -12,35 +12,35 @@ import XCoordinator
 final class AIChatViewController: BaseViewController<MainRoute> {
     
     // MARK: - UI Components
-    private let chatContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .red
-        return view
-    }()
+    private let chatContainerView: UIView = UIView()
     
-    private let welcomeStackView: UIStackView = {
-        let stack = UIStackView()
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = 8
-        return stack
-    }()
-    
-    private let welcomeTitleLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = AppColors.accent
-        label.font = FontFamily.Inter.semiBold(size: 20)
-        label.textAlignment = .center
-        label.numberOfLines = 2
+    lazy private var welcomeView: ChatWelcomeView = {
+        let fullText = "Your AI assistant for anything"
         
-        let text = "Your AI assistant for anything"
-        let attributedString = NSMutableAttributedString(string: text)
-        if let range = text.range(of: "AI assistant") {
-            let nsRange = NSRange(range, in: text)
-            attributedString.addAttribute(.foregroundColor, value: UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0), range: nsRange)
+        let gradientColors = [
+            UIColor(red: 0.55, green: 0.60, blue: 0.90, alpha: 1.0),
+            UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0)
+        ]
+        
+        let gradientColor = UIColor.textGradient(from: gradientColors, size: CGSize(width: 220, height: 24))
+        
+        let attributedString = NSMutableAttributedString(
+            string: fullText,
+            attributes: [
+                .foregroundColor: AppColors.accent,
+                .font: FontFamily.Inter.semiBold(size: 20)
+            ]
+        )
+        
+        if let range = fullText.range(of: "AI assistant") {
+            let nsRange = NSRange(range, in: fullText)
+            attributedString.addAttribute(.foregroundColor, value: gradientColor, range: nsRange)
         }
-        label.attributedText = attributedString
-        return label
+        
+        return ChatWelcomeView(
+            attributedTitle: attributedString,
+            subtitle: "Ask questions, get answers, and explore ideas\nin seconds"
+        )
     }()
     
     private let inputContainerView: UIView = {
@@ -88,8 +88,9 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         
         // Добавляем верхнюю рабочую область
         view.addSubview(chatContainerView)
-        chatContainerView.addSubview(welcomeStackView)
-        welcomeStackView.addArrangedSubview(welcomeTitleLabel)
+        chatContainerView.addSubview(welcomeView)
+        
+        //        welcomeView.backgroundColor = .blue.withAlphaComponent(0.2)
         
         // Добавляем готовую панель ввода
         view.addSubview(inputBarView)
@@ -108,9 +109,15 @@ final class AIChatViewController: BaseViewController<MainRoute> {
             make.bottom.equalTo(inputBarView.snp.top)
         }
         
-        welcomeStackView.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(32)
+        welcomeView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(23)
+            
+            // В идеале хотим отступ 135pt сверху
+            make.top.equalTo(navigationBar.snp.bottom).offset(135).priority(.low)
+            
+            // Но на iPhone SE жестко требуем, чтобы отступ снизу до панели ввода был МИНИМУМ 40pt
+            make.bottom.lessThanOrEqualTo(inputBarView.snp.top).offset(-40).priority(.required)
         }
     }
     
@@ -170,7 +177,7 @@ final class AIChatViewController: BaseViewController<MainRoute> {
             self.view.layoutIfNeeded()
         }, completion: nil)
     }
-
+    
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
