@@ -44,6 +44,7 @@
 				"Extensions/UIColor+Extensions.swift",
 				"Extensions/UIView+Reusable.swift",
 				Helpers/AppColors.swift,
+				Helpers/AppConfig.swift,
 				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,
 				Views/AppNavigationBar.swift,
@@ -61,6 +62,9 @@
 		5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "TestTask" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AIChatNetworkService.swift,
+				Network/AIChatModels.swift,
+				Network/ChatAPI.swift,
 				ServicesFactory.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
