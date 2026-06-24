@@ -16,9 +16,20 @@ class BaseViewController<R: Route>: UIViewController {
     let navigationBar: AppNavigationBar
     
     // MARK: - Init
-    init(title: String, subtitle: String? = nil, avatarImage: UIImage? = nil, rightImage: UIImage? = nil, router: WeakRouter<R>) {
+    init(
+        title: String,
+        subtitle: String? = nil,
+        avatarImage: UIImage? = nil,
+        rightImage: UIImage? = nil,
+        router: WeakRouter<R>
+    ) {
         self.router = router
-        self.navigationBar = AppNavigationBar(title: title, subtitle: subtitle, avatarImage: avatarImage, rightImage: rightImage)
+        self.navigationBar = AppNavigationBar(
+            title: title,
+            subtitle: subtitle,
+            avatarImage: avatarImage,
+            rightImage: rightImage
+        )
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -32,6 +43,21 @@ class BaseViewController<R: Route>: UIViewController {
         setupBaseViews()
         setupBaseConstraints()
         setupBaseActions()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        // Получаем реальную высоту статус-бара (на SE это 20pt, на 17 Pro — около 59pt)
+        let statusBarHeight = view.safeAreaInsets.top
+        
+        // Рабочая высота панели по вашему дизайну (129pt общей высоты на Pro минус ~59pt челки = 70pt)
+        let contentBarHeight: CGFloat = 70.0
+        
+        // Обновляем констрейнт высоты навигейшн бара
+        navigationBar.snp.updateConstraints { make in
+            make.height.equalTo(statusBarHeight + contentBarHeight)
+        }
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
