@@ -53,6 +53,22 @@ final class AIChatViewController: BaseViewController<MainRoute> {
     
     private let inputBarView = ChatInputView()
     
+    // MARK: - Screen States
+    enum ChatScreenState {
+        /// Чистый экран (история пуста, пользователь еще ничего не напечатал)
+        case emptyInitial
+        /// Начат ввод текста (сообщений еще нет, но в поле появилась хотя бы одна буква)
+        case typingEmptyChat
+        /// В чате есть контент (появилось хотя бы одно сообщение — экран приветствия скрыт навсегда)
+        case hasMessages
+    }
+    
+    private var currentScreenState: ChatScreenState = .emptyInitial {
+        didSet {
+            updateWelcomeViewVisibility(animated: true)
+        }
+    }
+    
     // MARK: - Init
     init(router: WeakRouter<MainRoute>) {
         super.init(
@@ -90,9 +106,6 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         view.addSubview(chatContainerView)
         chatContainerView.addSubview(welcomeView)
         
-        //        welcomeView.backgroundColor = .blue.withAlphaComponent(0.2)
-        
-        // Добавляем готовую панель ввода
         view.addSubview(inputBarView)
     }
     
@@ -125,8 +138,22 @@ final class AIChatViewController: BaseViewController<MainRoute> {
     }
     
     private func setupActions() {
-        // Чистим этот блок! Оставляем только базовое уведомление, если нужно
-        inputBarView.onStateChanged = nil
+        // Подписываемся на изменения состояний нашей умной шторки
+        inputBarView.onStateChanged = { [weak self] inputState in
+            guard let self = self else { return }
+            
+            // Если в чате уже есть сообщения, WelcomeView скрыт навсегда, выходим
+            if self.currentScreenState == .hasMessages { return }
+            
+            switch inputState {
+            case .normal, .editingEmpty:
+                // Текст пустой или клавиатуру свернули -> плавно возвращаем WelcomeView
+                self.currentScreenState = .emptyInitial
+            case .editingWithText:
+                // Появилась хотя бы одна буква -> плавно скрываем WelcomeView
+                self.currentScreenState = .typingEmptyChat
+            }
+        }
         
         inputBarView.onArrowTapped = { [weak self] in
             self?.view.endEditing(true)
@@ -134,10 +161,16 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         
         inputBarView.onSendTapped = { [weak self] text in
             print("Отправка: \(text)")
+            // Как только отправили первое сообщение — переключаем стейт в контентный режим
+            self?.currentScreenState = .hasMessages
         }
     }
+}
+
+// MARK: - Keyboard Management (Private)
+private extension AIChatViewController {
     
-    private func setupKeyboardObservers() {
+    func setupKeyboardObservers() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleKeyboardNotification),
@@ -152,7 +185,7 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         )
     }
     
-    @objc private func handleKeyboardNotification(_ notification: Notification) {
+    @objc func handleKeyboardNotification(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue,
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
@@ -163,9 +196,10 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         
         inputBarView.snp.remakeConstraints { make in
             if isKeyboardShowing {
-                // Привязываемся ровно к верху клавиатуры
+                // Привязываемся к самому низу ЭКРАНА, вычитая высоту клавиатуры
                 make.bottom.equalToSuperview().offset(-keyboardHeight)
             } else {
+                // Возвращаем привязку к Safe Area, когда клавиатура скрыта
                 make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             }
             make.leading.trailing.equalToSuperview()
@@ -177,7 +211,30 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         }, completion: nil)
     }
     
-    @objc private func dismissKeyboard() {
+    @objc func dismissKeyboard() {
         view.endEditing(true)
+    }
+}
+
+// MARK: - Update welcome view visibility (private)
+private extension AIChatViewController {
+    
+    func updateWelcomeViewVisibility(animated: Bool) {
+        let targetAlpha: CGFloat = currentScreenState == .emptyInitial ? 1.0 : 0.0
+        
+        // Защита: если альфа уже совпадает, не гоняем анимационный движок вхолостую
+        guard welcomeView.alpha != targetAlpha else { return }
+        
+        // Используем guard let внутри замыкания, чтобы тип стал строго () -> Void
+        let block = { [weak self] in
+            guard let self = self else { return }
+            self.welcomeView.alpha = targetAlpha
+        }
+        
+        if animated {
+            UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut, animations: block)
+        } else {
+            block()
+        }
     }
 }
