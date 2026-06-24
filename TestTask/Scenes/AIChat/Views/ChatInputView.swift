@@ -141,15 +141,14 @@ final class ChatInputView: UIView {
     }
     
     private func setupConstraints() {
-        // Микрофон НАМЕРТВО привязан к правому краю
         microphoneButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().offset(-16)
+            make.trailing.equalToSuperview().offset(-16).priority(999)
             make.centerY.equalTo(textField.snp.centerY)
             make.width.height.equalTo(40)
         }
         
         arrowDownButton.snp.makeConstraints { make in
-            make.trailing.equalToSuperview().offset(-16).priority(999)
+            self.arrowTrailingConstraint = make.trailing.equalTo(microphoneButton.snp.leading).constraint
             make.centerY.equalTo(textField.snp.centerY)
             make.width.height.equalTo(40)
         }
@@ -165,7 +164,6 @@ final class ChatInputView: UIView {
             make.trailing.equalTo(arrowDownButton.snp.leading).offset(-12)
         }
     }
-    
     
     private func setupActions() {
         textField
@@ -220,7 +218,7 @@ final class ChatInputView: UIView {
                 self.arrowTrailingConstraint?.update(offset: -12)
                 
                 self.textField.snp.updateConstraints { make in
-                    make.centerY.equalToSuperview().offset(-10)
+                    make.centerY.equalToSuperview()
                 }
                 
             case .editingEmpty:
