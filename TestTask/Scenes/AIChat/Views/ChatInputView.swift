@@ -10,9 +10,17 @@ import SnapKit
 
 final class ChatInputView: UIView {
     
+    // MARK: - Constants
+    private enum Constants {
+        /// Максимальная высота текстового поля, соответствующая 3 строкам ввода
+        static let maxTextViewHeight: CGFloat = 88.0
+        /// Минимальная высота текстового поля для одной строки
+        static let minTextViewHeight: CGFloat = 40.0
+    }
+    
     // MARK: - States
     enum State {
-        /// Клавиатура скрыта, текст пустой [Стрелка + Микрофон]
+        /// Клавиатура скрыта, текст пустой [Стрелка + Micro]
         case normal
         /// Клавиатура поднята, текст пустой [Только Стрелка]
         case editingEmpty
@@ -25,25 +33,33 @@ final class ChatInputView: UIView {
     var onStateChanged: ((State) -> Void)?
     
     private var arrowTrailingConstraint: Constraint?
-    
     private(set) var currentState: State = .normal
     
     // MARK: - UI Components
-    private let textField: UITextField = {
-        let field = UITextField()
-        field.textColor = AppColors.accent
-        field.font = FontFamily.Inter.regular(size: 16) // 16px по макету Figma
-        return field
+    private let textView: UITextView = {
+        let tv = UITextView()
+        tv.textColor = AppColors.accent
+        tv.font = FontFamily.Inter.regular(size: 16)
+        tv.backgroundColor = .clear
+        tv.isScrollEnabled = false // Ключевое свойство для автоматического роста вверх!
+        
+        // Срезаем системные внутренние поля, чтобы текст стоял вровень с кнопками
+        tv.textContainer.lineFragmentPadding = 0
+        tv.textContainerInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        return tv
+    }()
+    
+    private let placeholderLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = AppColors.chatInputPlaceholderText
+        label.font = FontFamily.Inter.regular(size: 16)
+        return label
     }()
     
     private let arrowDownButton: UIButton = {
         let button = UIButton(type: .system)
         if let image = AppIcons.Chat.arrowDown {
-            button
-                .setImage(
-                    image.withRenderingMode(.alwaysTemplate),
-                    for: .normal
-                )
+            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.tintColor = AppColors.accent
         button.backgroundColor = .clear
@@ -55,11 +71,7 @@ final class ChatInputView: UIView {
     private let sendButton: UIButton = {
         let button = UIButton(type: .system)
         if let image = AppIcons.Chat.paperplane {
-            button
-                .setImage(
-                    image.withRenderingMode(.alwaysTemplate),
-                    for: .normal
-                )
+            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.tintColor = .white
         return button
@@ -68,11 +80,7 @@ final class ChatInputView: UIView {
     private let microphoneButton: UIButton = {
         let button = UIButton(type: .system)
         if let image = AppIcons.Chat.microphone {
-            button
-                .setImage(
-                    image.withRenderingMode(.alwaysTemplate),
-                    for: .normal
-                )
+            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.tintColor = AppColors.accent
         button.backgroundColor = .clear
@@ -98,7 +106,7 @@ final class ChatInputView: UIView {
         setupView()
         setupConstraints()
         setupActions()
-        updateUI(for: .normal, animated: false) // Стартуем в состоянии .normal
+        updateUI(for: .normal, animated: false)
     }
     
     required init?(coder: NSCoder) {
@@ -121,95 +129,88 @@ final class ChatInputView: UIView {
     // MARK: - Private Setup
     private func setupView() {
         backgroundColor = AppColors.chatAskAnythingBackground
-        
-        // Оставляем скругления только сверху шторки
         layer.cornerRadius = 24
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         layer.masksToBounds = true
         
-        addSubview(textField)
+        addSubview(textView)
         addSubview(arrowDownButton)
         addSubview(sendButton)
         addSubview(microphoneButton)
         
+        // Вставляем плейсхолдер поверх textView
+        textView.addSubview(placeholderLabel)
+        
         if let imageView = sendButton.imageView {
-            sendButton.layer
-                .insertSublayer(sendButtonGradientLayer, below: imageView.layer)
+            sendButton.layer.insertSublayer(sendButtonGradientLayer, below: imageView.layer)
         } else {
             sendButton.layer.insertSublayer(sendButtonGradientLayer, at: 0)
         }
     }
     
     private func setupConstraints() {
+        // 1. Микрофон центрируем по вертикали относительно первой строки ввода!
         microphoneButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview().offset(-16).priority(999)
-            make.centerY.equalTo(textField.snp.centerY)
-            make.width.height.equalTo(40)
+            make.bottom.lessThanOrEqualTo(textView.snp.bottom) // Ограничитель
+            make.height.equalTo(40)
+            make.width.equalTo(40)
         }
         
+        // 2. Стрелка дублирует позицию микрофона
         arrowDownButton.snp.makeConstraints { make in
             self.arrowTrailingConstraint = make.trailing.equalTo(microphoneButton.snp.leading).constraint
-            make.centerY.equalTo(textField.snp.centerY)
+            make.bottom.equalTo(microphoneButton.snp.bottom)
             make.width.height.equalTo(40)
         }
         
+        // 3. Самолётик накрывает стрелку
         sendButton.snp.makeConstraints { make in
             make.edges.equalTo(arrowDownButton)
         }
         
-        textField.snp.makeConstraints { make in
+        // 4. Текстовое поле — главный драйвер высоты.
+        // Центрирует по своей линии кнопки и распирает верх/низ панели.
+        textView.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(16)
-            make.height.equalTo(44)
-            make.centerY.equalToSuperview()
             make.trailing.equalTo(arrowDownButton.snp.leading).offset(-12)
+            make.top.equalToSuperview().offset(12)
+            make.bottom.equalToSuperview().offset(-12) // Тянет нижний край панели за собой
+            make.height.greaterThanOrEqualTo(Constants.minTextViewHeight)// Одна строка
+            make.height.lessThanOrEqualTo(Constants.maxTextViewHeight)// Максимум 3 строки
+        }
+        
+        // Привязываем кнопки к центру базовой высоты текстового поля на старте
+        microphoneButton.snp.makeConstraints { make in
+            make.centerY.equalTo(textView.snp.centerY)
+        }
+        
+        // 5. Плейсхолдер ложится ровно в начало текста
+        placeholderLabel.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview()
+            make.top.equalToSuperview().offset(10)
         }
     }
     
     private func setupActions() {
-        textField
-            .addTarget(
-                self,
-                action: #selector(textFieldDidChange),
-                for: .editingChanged
-            )
-        textField
-            .addTarget(
-                self,
-                action: #selector(textFieldDidBeginEditing),
-                for: .editingDidBegin
-            )
-        textField
-            .addTarget(
-                self,
-                action: #selector(textFieldDidEndEditing),
-                for: .editingDidEnd
-            )
-        
-        arrowDownButton
-            .addTarget(
-                self,
-                action: #selector(arrowButtonTapped),
-                for: .touchUpInside
-            )
-        sendButton
-            .addTarget(
-                self,
-                action: #selector(sendButtonTapped),
-                for: .touchUpInside
-            )
+        textView.delegate = self
+        arrowDownButton.addTarget(self, action: #selector(arrowButtonTapped), for: .touchUpInside)
+        sendButton.addTarget(self, action: #selector(sendButtonTapped), for: .touchUpInside)
     }
     
     // MARK: - Public State Management
-    
     func updateUI(for state: State, animated: Bool = true) {
         currentState = state
         
         switch state {
         case .normal:
-            self.setPlaceholder("How can I help you?")
+            self.placeholderLabel.text = "How can I help you?"
         case .editingEmpty, .editingWithText:
-            self.setPlaceholder("Ask anything...")
+            self.placeholderLabel.text = "Ask anything..."
         }
+        
+        // Управляем видимостью плейсхолдера
+        self.placeholderLabel.isHidden = !textView.text.isEmpty
         
         let block = { [weak self] in
             guard let self = self else { return }
@@ -219,38 +220,19 @@ final class ChatInputView: UIView {
                 self.microphoneButton.alpha = 1.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
-                
-                // Возвращаем отступ назад (-12pt от микрофона)
                 self.arrowTrailingConstraint?.update(offset: -12)
-                
-                self.textField.snp.updateConstraints { make in
-                    make.centerY.equalToSuperview()
-                }
                 
             case .editingEmpty:
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
-                
-                // Сдвигаем стрелку в самый край поверх прозрачного микрофона!
-                // Ширина микрофона (40) + его старый отступ (12) = 52pt сдвиг вперед
                 self.arrowTrailingConstraint?.update(offset: 52)
-                
-                self.textField.snp.updateConstraints { make in
-                    make.centerY.equalToSuperview()
-                }
                 
             case .editingWithText:
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 0.0
                 self.sendButton.alpha = 1.0
-                
-                // Самолётик остаётся в правом углу
                 self.arrowTrailingConstraint?.update(offset: 52)
-                
-                self.textField.snp.updateConstraints { make in
-                    make.centerY.equalToSuperview()
-                }
             }
             self.layoutIfNeeded()
         }
@@ -264,43 +246,44 @@ final class ChatInputView: UIView {
         onStateChanged?(state)
     }
     
-    private func setPlaceholder(_ text: String) {
-        textField.attributedPlaceholder = NSAttributedString(
-            string: text,
-            attributes: [NSAttributedString.Key.foregroundColor: AppColors.chatInputPlaceholderText]
-        )
-    }
-    
     // MARK: - Handlers
-    @objc private func textFieldDidChange(_ textField: UITextField) {
-        let isTextEmpty = textField.text?.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        ).isEmpty ?? true
-        updateUI(for: isTextEmpty ? .editingEmpty : .editingWithText)
-    }
-    
-    @objc private func textFieldDidBeginEditing(_ textField: UITextField) {
-        let isTextEmpty = textField.text?.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        ).isEmpty ?? true
-        updateUI(for: isTextEmpty ? .editingEmpty : .editingWithText)
-    }
-    
-    @objc private func textFieldDidEndEditing(_ textField: UITextField) {
-        let isTextEmpty = textField.text?.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        ).isEmpty ?? true
-        updateUI(for: isTextEmpty ? .normal : .editingWithText)
-    }
-    
     @objc private func arrowButtonTapped() {
         onArrowTapped?()
     }
     
     @objc private func sendButtonTapped() {
-        guard let text = textField.text, !text.isEmpty else { return }
+        guard let text = textView.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         onSendTapped?(text)
-        textField.text = ""
-        textField.endEditing(true)
+        textView.text = ""
+        updateUI(for: .editingEmpty) // Сбрасываем в пустое редактирование
+    }
+}
+
+// MARK: - UITextViewDelegate
+extension ChatInputView: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+        let isTextEmpty = textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        updateUI(for: isTextEmpty ? .editingEmpty : .editingWithText)
+        
+        // Динамически включаем скролл, если текст перерос максимальную высоту
+        let size = textView.sizeThatFits(CGSize(width: textView.frame.width, height: .infinity))
+        textView.isScrollEnabled = size.height >= Constants.maxTextViewHeight
+        
+        // Магия для плавного роста панели ввода в iOS: заставляем родительское view обновить разметку
+        if let superview = self.superview {
+            UIView.animate(withDuration: 0.1) {
+                superview.layoutIfNeeded()
+            }
+        }
+    }
+    
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        let isTextEmpty = textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        updateUI(for: isTextEmpty ? .editingEmpty : .editingWithText)
+    }
+    
+    func textViewDidEndEditing(_ textView: UITextView) {
+        let isTextEmpty = textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        updateUI(for: isTextEmpty ? .normal : .editingWithText)
     }
 }

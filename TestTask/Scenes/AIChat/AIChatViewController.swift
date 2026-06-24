@@ -97,27 +97,30 @@ final class AIChatViewController: BaseViewController<MainRoute> {
     }
     
     private func setupConstraints() {
+        // 1. Панель ввода: высоты нет, она сама растягивается изнутри
         inputBarView.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom) // Ровно на безопасную зону
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             make.leading.trailing.equalToSuperview()
-            make.height.equalTo(88.0) // Фиксированная высота по дизайну
         }
         
+        // 2. Контейнер чата: его низ автоматически поджимается, когда растет панель ввода
         chatContainerView.snp.makeConstraints { make in
-            make.top.equalTo(navigationBar.snp.bottom) // Изменено с .top на .bottom
+            make.top.equalTo(navigationBar.snp.bottom)
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(inputBarView.snp.top)
         }
         
+        // 3. WelcomeView: привязываем К К CONTAINER VIEW чата, а не к экрану или шторке!
         welcomeView.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.leading.trailing.equalToSuperview().inset(23)
             
-            // В идеале хотим отступ 135pt сверху
+            // В идеале на больших экранах держим отступ 135pt от низа NavBar
             make.top.equalTo(navigationBar.snp.bottom).offset(135).priority(.low)
             
-            // Но на iPhone SE жестко требуем, чтобы отступ снизу до панели ввода был МИНИМУМ 40pt
-            make.bottom.lessThanOrEqualTo(inputBarView.snp.top).offset(-40).priority(.required)
+            // На iPhone SE жестко требуем отступ до НИЗА КОНТЕЙНЕРА ЧАТА (то есть до шторки) минимум 40pt
+            // Используем chatContainerView.snp.bottom вместо inputBarView.snp.top
+            make.bottom.lessThanOrEqualTo(chatContainerView.snp.bottom).offset(-40).priority(.required)
         }
     }
     
@@ -160,16 +163,12 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         
         inputBarView.snp.remakeConstraints { make in
             if isKeyboardShowing {
-                // Когда клавиатура открыта — привязываемся к самому низу ЭКРАНА,
-                // вычитая высоту клавиатуры
+                // Привязываемся ровно к верху клавиатуры
                 make.bottom.equalToSuperview().offset(-keyboardHeight)
             } else {
-                // Когда клавиатура скрыта — возвращаем привязку к Safe Area,
-                // чтобы панель стояла на месте и не падала вниз
                 make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             }
             make.leading.trailing.equalToSuperview()
-            make.height.equalTo(88.0)
         }
         
         let animationOptions = UIView.AnimationOptions(rawValue: curveRaw << 16)
@@ -177,7 +176,6 @@ final class AIChatViewController: BaseViewController<MainRoute> {
             self.view.layoutIfNeeded()
         }, completion: nil)
     }
-    
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
