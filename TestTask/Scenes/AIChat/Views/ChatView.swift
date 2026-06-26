@@ -25,6 +25,7 @@ final class ChatView: UIView {
         cv.alwaysBounceVertical = true
         cv.showsVerticalScrollIndicator = false
         cv.register(ChatUserCell.self, forCellWithReuseIdentifier: ChatUserCell.reuseIdentifier)
+        cv.register(ChatTypingIndicatorCell.self, forCellWithReuseIdentifier: ChatTypingIndicatorCell.reuseIdentifier)
         return cv
     }()
     

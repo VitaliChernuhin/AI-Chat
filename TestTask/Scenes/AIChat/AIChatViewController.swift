@@ -184,21 +184,45 @@ private extension AIChatViewController {
 extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.messages.count
+        // Если ИИ печатает, искусственно увеличиваем количество ячеек на одну (для индикатора)
+        let messagesCount = viewModel.messages.count
+        return viewModel.isAISpeaking ? messagesCount + 1 : messagesCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        if viewModel.isAISpeaking && indexPath.item == viewModel.messages.count {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatTypingIndicatorCell.reuseIdentifier,
+                for: indexPath
+            ) as? ChatTypingIndicatorCell else {
+                return UICollectionViewCell()
+            }
+            
+            cell.startAnimating()
+            cell.backgroundColor = .clear
+            return cell
+        }
+        
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: ChatUserCell.reuseIdentifier,
             for: indexPath
         ) as? ChatUserCell else {
             return UICollectionViewCell()
         }
-  
+        
         let message = viewModel.messages[indexPath.item]
         cell.configure(with: message)
         cell.backgroundColor = .clear
+        
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+
+        if let typingCell = cell as? ChatTypingIndicatorCell {
+            typingCell.startAnimating()
+        }
     }
 }
 
