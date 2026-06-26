@@ -11,19 +11,9 @@ import XCoordinator
 
 final class AIChatViewModel {
     
-    // MARK: - Screen States
-    enum ScreenState {
-        /// Чистый экран (история пуста, пользователь еще ничего не напечатал)
-        case emptyInitial
-        /// Начат ввод текста (сообщений еще нет, но в поле появилась хотя бы одна буква)
-        case typingEmptyChat
-        /// В чате есть контент (появилось хотя бы одно сообщение — экран приветствия скрыт навсегда)
-        case hasMessages
-    }
-    
     // MARK: - Outputs (Данные для подписки из ViewController)
     @Published private(set) var messages: [ChatMessageItem] = []
-    @Published private(set) var screenState: ScreenState = .emptyInitial
+    @Published private(set) var screenState: ChatScreenState = .emptyInitial
     @Published private(set) var isAISpeaking: Bool = false // Показывает, крутится ли сейчас typing indicator
     
     // MARK: - Services & Navigation

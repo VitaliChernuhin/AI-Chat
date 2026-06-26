@@ -11,7 +11,7 @@ import SnapKit
 final class ChatView: UIView {
     
     // MARK: - Properties
-    var currentScreenState: AIChatViewModel.ScreenState = .emptyInitial {
+    var currentScreenState: ChatScreenState = .emptyInitial {
         didSet {
             updateWelcomeViewVisibility(animated: true)
         }
