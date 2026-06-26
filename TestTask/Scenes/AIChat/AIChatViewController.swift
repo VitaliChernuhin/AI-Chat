@@ -166,8 +166,7 @@ private extension AIChatViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] messages in
                 guard let self = self else { return }
-                print("Обновить UI коллекции: \(messages.count) сообщений")
-                // Сюда прикрутим reloadData()
+                self.chatView.reloadAndScrollToBottom(animated: true)
             }
             .store(in: &cancellables)
         
@@ -185,18 +184,22 @@ private extension AIChatViewController {
 extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // Коллекция строго отображает количество сообщений из вью-модели
         return viewModel.messages.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        // Временная заглушка: регистрируем и возвращаем дефолтную пустую ячейку
-        let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: "TemporaryCell",
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: ChatUserCell.reuseIdentifier,
             for: indexPath
-        )
+        ) as? ChatUserCell else {
+            return UICollectionViewCell()
+        }
+  
+        let message = viewModel.messages[indexPath.item]
+        cell.configure(with: message)
         cell.backgroundColor = .clear
         return cell
     }
 }
+
 

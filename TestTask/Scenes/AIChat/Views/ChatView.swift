@@ -24,6 +24,7 @@ final class ChatView: UIView {
         cv.backgroundColor = .clear
         cv.alwaysBounceVertical = true
         cv.showsVerticalScrollIndicator = false
+        cv.register(ChatUserCell.self, forCellWithReuseIdentifier: ChatUserCell.reuseIdentifier)
         return cv
     }()
     
@@ -85,8 +86,25 @@ final class ChatView: UIView {
             // В идеале держим отступ 135pt от верха ChatView
             make.top.equalToSuperview().offset(135).priority(.low)
             
-            // ИСПРАВЛЕНИЕ: Используем явную привязку к snp.bottom самой вьюхи чата
             make.bottom.lessThanOrEqualTo(snp.bottom).offset(-40).priority(.required)
+        }
+    }
+}
+
+// MARK: - ReloadAndScrollToBottom (public)
+extension ChatView {
+    
+    /// Полностью обновляет ленту чата и автоматически скроллит её к последнему сообщению
+    func reloadAndScrollToBottom(animated: Bool = true) {
+        collectionView.reloadData()
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let totalItems = self.collectionView.numberOfItems(inSection: 0)
+            guard totalItems > 0 else { return }
+            
+            let indexPath = IndexPath(item: totalItems - 1, section: 0)
+            self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
         }
     }
 }
@@ -111,7 +129,6 @@ private extension ChatView {
         }
     }
 }
-
 
 // MARK: - Compositional Layout
 private extension ChatView {

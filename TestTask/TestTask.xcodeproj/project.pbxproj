@@ -28,6 +28,7 @@
 				AIChat/Model/ChatScreenState.swift,
 				AIChat/ViewModel/AIChatViewModel.swift,
 				AIChat/Views/ChatInputView.swift,
+				AIChat/Views/ChatUserCell.swift,
 				AIChat/Views/ChatView.swift,
 				AIChat/Views/ChatWelcomeView.swift,
 				MainPage/MainPageViewController.swift,
