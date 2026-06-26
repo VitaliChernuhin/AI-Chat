@@ -27,6 +27,7 @@
 				AIChat/Model/ChatMessageItem.swift,
 				AIChat/ViewModel/AIChatViewModel.swift,
 				AIChat/Views/ChatInputView.swift,
+				AIChat/Views/ChatView.swift,
 				AIChat/Views/ChatWelcomeView.swift,
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
