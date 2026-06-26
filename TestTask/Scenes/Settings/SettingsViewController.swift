@@ -9,7 +9,9 @@ import UIKit
 import SnapKit
 import XCoordinator
 
-final class SettingsViewController: BaseViewController<MainRoute> {
+final class SettingsViewController: BaseViewController, Routable, NavigationBarOwner{
+    
+    internal let router: WeakRouter<MainRoute>
     
     // MARK: - UI Components
     private let comingSoonLabel: UILabel = {
@@ -24,12 +26,12 @@ final class SettingsViewController: BaseViewController<MainRoute> {
     
     // MARK: Life cycle
     init(router: WeakRouter<MainRoute>) {
+        self.router = router
         super.init(
             title: "Settings",
             subtitle: nil,
             avatarImage: nil,
-            rightImage: nil,
-            router: router
+            rightImage: nil
         )
     }
     
@@ -42,6 +44,7 @@ final class SettingsViewController: BaseViewController<MainRoute> {
         super.viewDidLoad()
         setupUniqueViews()
         setupUniqueConstraints()
+        setupAutomaticBackNavigation()
     }
     
     // MARK: - Setup Unique Content

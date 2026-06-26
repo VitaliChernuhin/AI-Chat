@@ -17,10 +17,7 @@ enum MainRoute: Route {
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
-    private let servicesFactory: ServicesFactory
-    
-    init(servicesFactory: ServicesFactory) {
-        self.servicesFactory = servicesFactory
+    init() {
         let navigationController = MainActor.assumeIsolated {
             let nc = UINavigationController()
             nc.isNavigationBarHidden = true
@@ -30,44 +27,49 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
         super.init(rootViewController: navigationController, initialRoute: .mainPage)
     }
     
-    
-    nonisolated override func prepareTransition(for route: MainRoute) -> NavigationTransition {
+    override func prepareTransition(for route: MainRoute) -> NavigationTransition {
         let currentRouter = self.weakRouter
+        
         switch route {
         case .mainPage:
             return MainActor.assumeIsolated {
-                let viewController = Self.configureMainPageScene(router: currentRouter)
+                let viewController = configureMainPageScene(router: currentRouter)
                 return .push(viewController)
             }
+            
         case .settings:
             return MainActor.assumeIsolated {
-                let viewController = Self.configureSettingsScene(router: currentRouter)
+                let viewController = configureSettingsScene(router: currentRouter)
                 return .push(viewController)
             }
+            
         case .back:
             return .pop()
             
         case .aiChat:
+            
             return MainActor.assumeIsolated {
-                let viewController = Self.configureAIChatScene(router: currentRouter)
+                let viewController = configureAIChatScene(router: currentRouter)
                 return .push(viewController)
             }
         }
     }
-    
-    @MainActor
-    private static func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        MainPageViewController(router:router)
-    }
-    
-    @MainActor
-    private static func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
-         SettingsViewController(router: router)
-    }
-    
-    @MainActor
-    private static func configureAIChatScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        AIChatViewController(router: router)
-    }
-    
+}
+
+// MARK: - Scene Configurations (Global File Scope)
+@MainActor
+private func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
+    MainPageViewController(router: router)
+}
+
+@MainActor
+private func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
+     SettingsViewController(router: router)
+}
+
+@MainActor
+private func configureAIChatScene(router: WeakRouter<MainRoute>) -> UIViewController {
+    let chatNetworkService = ServicesFactory.shared.service(type: AIChatNetworkService.self)
+    let viewModel = AIChatViewModel(router: router, chatNetworkService: chatNetworkService)
+    return AIChatViewController(viewModel: viewModel)
 }

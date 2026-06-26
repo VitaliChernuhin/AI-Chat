@@ -8,17 +8,18 @@
 import Foundation
 import Swinject
 
-protocol ServicesFactory {
-    func service<T: Any>(type: T.Type) -> T
-}
-
-final class ServicesFactoryImpl: ServicesFactory {
+final class ServicesFactory: @unchecked Sendable {
+    
+    // MARK: - Static Singleton
+    // Делаем фабрику статической, чтобы безопасно вызывать сервисы на любом потоке
+    static let shared = ServicesFactory()
     
     // MARK: - Private properties
     private let container: Container
     
     // MARK: - Init
-    init() {
+    // Делаем инициализатор приватным, чтобы никто случайно не создал вторую копию
+    private init() {
         self.container = Container()
         self.registerServices()
     }
@@ -33,6 +34,8 @@ final class ServicesFactoryImpl: ServicesFactory {
     
     // MARK: - Private registrations
     private func registerServices() {
-        
+        container.register(AIChatNetworkService.self) { _ in
+            AIChatNetworkServiceImpl()
+        }.inObjectScope(.transient)
     }
 }

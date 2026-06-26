@@ -7,12 +7,10 @@
 
 import UIKit
 import SnapKit
-import XCoordinator
 
-class BaseViewController<R: Route>: UIViewController {
+class BaseViewController: UIViewController {
     
     // MARK: - Properties
-    let router: WeakRouter<R>
     let navigationBar: AppNavigationBar
     
     // MARK: - Init
@@ -20,10 +18,8 @@ class BaseViewController<R: Route>: UIViewController {
         title: String,
         subtitle: String? = nil,
         avatarImage: UIImage? = nil,
-        rightImage: UIImage? = nil,
-        router: WeakRouter<R>
+        rightImage: UIImage? = nil
     ) {
-        self.router = router
         self.navigationBar = AppNavigationBar(
             title: title,
             subtitle: subtitle,
@@ -42,7 +38,6 @@ class BaseViewController<R: Route>: UIViewController {
         super.viewDidLoad()
         setupBaseViews()
         setupBaseConstraints()
-        setupBaseActions()
     }
     
     override func viewDidLayoutSubviews() {
@@ -74,14 +69,6 @@ class BaseViewController<R: Route>: UIViewController {
         navigationBar.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             make.height.equalTo(129)
-        }
-    }
-    
-    private func setupBaseActions() {
-        navigationBar.onBackTapped = { [weak self] in
-            if let _ = R.self as? MainRoute.Type {
-                (self?.router as? WeakRouter<MainRoute>)?.trigger(.back)
-            }
         }
     }
 }

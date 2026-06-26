@@ -8,8 +8,9 @@
 import UIKit
 import SnapKit
 import XCoordinator
+import Combine
 
-final class AIChatViewController: BaseViewController<MainRoute> {
+final class AIChatViewController: BaseViewController {
     
     // MARK: - UI Components
     private let chatContainerView: UIView = UIView()
@@ -53,30 +54,18 @@ final class AIChatViewController: BaseViewController<MainRoute> {
     
     private let inputBarView = ChatInputView()
     
-    // MARK: - Screen States
-    enum ChatScreenState {
-        /// Чистый экран (история пуста, пользователь еще ничего не напечатал)
-        case emptyInitial
-        /// Начат ввод текста (сообщений еще нет, но в поле появилась хотя бы одна буква)
-        case typingEmptyChat
-        /// В чате есть контент (появилось хотя бы одно сообщение — экран приветствия скрыт навсегда)
-        case hasMessages
-    }
-    
-    private var currentScreenState: ChatScreenState = .emptyInitial {
-        didSet {
-            updateWelcomeViewVisibility(animated: true)
-        }
-    }
+    // MARK: - Properties
+    private let viewModel: AIChatViewModel
+    private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Init
-    init(router: WeakRouter<MainRoute>) {
+    init(viewModel: AIChatViewModel) {
+        self.viewModel = viewModel
         super.init(
             title: "AI Chat",
             subtitle: Date().dotFormattedString,
             avatarImage: AppIcons.NavigationBar.chatAvatar,
             rightImage: AppIcons.NavigationBar.history,
-            router: router
         )
     }
     
@@ -96,6 +85,7 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         setupConstraints()
         setupActions()
         setupKeyboardObservers() // Запускаем слежку за клавиатурой
+        bindViewModel()
     }
     
     // MARK: - Setup
@@ -138,20 +128,16 @@ final class AIChatViewController: BaseViewController<MainRoute> {
     }
     
     private func setupActions() {
-        // Подписываемся на изменения состояний нашей умной шторки
         inputBarView.onStateChanged = { [weak self] inputState in
             guard let self = self else { return }
             
-            // Если в чате уже есть сообщения, WelcomeView скрыт навсегда, выходим
-            if self.currentScreenState == .hasMessages { return }
-            
             switch inputState {
             case .normal, .editingEmpty:
-                // Текст пустой или клавиатуру свернули -> плавно возвращаем WelcomeView
-                self.currentScreenState = .emptyInitial
+                // Текст пустой или клавиатуру свернули -> передаем во ViewModel
+                self.viewModel.changeInputState(hasText: false)
             case .editingWithText:
-                // Появилась хотя бы одна буква -> плавно скрываем WelcomeView
-                self.currentScreenState = .typingEmptyChat
+                // Появилась хотя бы одна буква -> передаем во ViewModel
+                self.viewModel.changeInputState(hasText: true)
             }
         }
         
@@ -160,9 +146,8 @@ final class AIChatViewController: BaseViewController<MainRoute> {
         }
         
         inputBarView.onSendTapped = { [weak self] text in
-            print("Отправка: \(text)")
-            // Как только отправили первое сообщение — переключаем стейт в контентный режим
-            self?.currentScreenState = .hasMessages
+            // Передаем отправку текста во вью-модель
+            self?.viewModel.sendMessage(text)
         }
     }
 }
@@ -219,13 +204,10 @@ private extension AIChatViewController {
 // MARK: - Update welcome view visibility (private)
 private extension AIChatViewController {
     
-    func updateWelcomeViewVisibility(animated: Bool) {
-        let targetAlpha: CGFloat = currentScreenState == .emptyInitial ? 1.0 : 0.0
-        
-        // Защита: если альфа уже совпадает, не гоняем анимационный движок вхолостую
+    func updateWelcomeViewVisibility(toAlpha targetAlpha: CGFloat, animated: Bool) {
+        // Твоя защита: если альфа уже совпадает, не гоняем анимационный движок вхолостую
         guard welcomeView.alpha != targetAlpha else { return }
         
-        // Используем guard let внутри замыкания, чтобы тип стал строго () -> Void
         let block = { [weak self] in
             guard let self = self else { return }
             self.welcomeView.alpha = targetAlpha
@@ -238,3 +220,45 @@ private extension AIChatViewController {
         }
     }
 }
+
+// MARK: - ViewModel Binding (Private)
+private extension AIChatViewController {
+    
+    func bindViewModel() {
+        viewModel.$screenState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                guard let self = self else { return }
+                
+                // Переключаем альфу welcomeView в зависимости от состояния
+                switch state {
+                case .emptyInitial:
+                    // Текст пустой -> плавно показываем приветствие
+                    self.updateWelcomeViewVisibility(toAlpha: 1.0, animated: true)
+                case .typingEmptyChat, .hasMessages:
+                    // Начали писать или уже есть сообщения -> плавно скрываем
+                    self.updateWelcomeViewVisibility(toAlpha: 0.0, animated: true)
+                }
+            }
+            .store(in: &cancellables)
+        
+        // 2. Слушаем обновление массива сообщений для коллекции
+        viewModel.$messages
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] messages in
+                guard let self = self else { return }
+                print("Обновить UI коллекции: \(messages.count) сообщений")
+                // Сюда прикрутим reloadData()
+            }
+            .store(in: &cancellables)
+        
+        // 3. Слушаем индикатор набора текста AI
+        viewModel.$isAISpeaking
+            .receive(on: DispatchQueue.main)
+            .sink { isSpeaking in
+                print("Анимация трех точек: \(isSpeaking)")
+            }
+            .store(in: &cancellables)
+    }
+}
+

@@ -9,10 +9,10 @@ import UIKit
 import SnapKit
 import XCoordinator
 
-final class MainPageViewController: UIViewController {
+final class MainPageViewController: UIViewController, Routable {
     
     // MARK: - Properties
-    private let router: WeakRouter<MainRoute>
+    internal let router: WeakRouter<MainRoute>
     
     private let features: [FeatureItem] = [
         FeatureItem(type: .turnPhotoToVideo),

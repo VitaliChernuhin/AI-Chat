@@ -19,10 +19,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 
         let window = UIWindow(windowScene: windowScene)
         self.window = window
-        
-        let factory = ServicesFactoryImpl()
-  
-        let mainCoordinator = MainCoordinator(servicesFactory: factory)
+          
+        let mainCoordinator = MainCoordinator()
         self.coordinator = mainCoordinator
         mainCoordinator.setRoot(for: window)
     }
