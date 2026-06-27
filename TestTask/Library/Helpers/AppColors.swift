@@ -13,6 +13,9 @@ enum AppColors {
     static let background = UIColor(red: 10/255, green: 7/255, blue: 14/255, alpha: 1.0)
     static let accent = UIColor.white
     
+    static let brandGradientStart = UIColor(hex: "#98C6F7")
+    static let brandGradientEnd = UIColor(hex: "#EB5B92")
+    
     // MARK: - Navigation Bar
     static let navBarBackground = UIColor(red: 18/255, green: 14/255, blue: 21/255, alpha: 1.0)
     static let navBarSubtitle = UIColor(red: 141/255, green: 139/255, blue: 143/255, alpha: 1.0)

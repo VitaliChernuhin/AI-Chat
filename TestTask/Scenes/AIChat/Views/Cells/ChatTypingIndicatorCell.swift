@@ -166,9 +166,7 @@ private extension UIImage {
         return renderer.image { context in
             let gradientLayer = CAGradientLayer()
             gradientLayer.frame = CGRect(origin: .zero, size: size)
-            gradientLayer.colors = [
-                UIColor(red: 0.55, green: 0.60, blue: 0.90, alpha: 1.0).cgColor,
-                UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0).cgColor
+            gradientLayer.colors = [AppColors.brandGradientStart.cgColor, AppColors.brandGradientEnd.cgColor
             ]
             gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
             gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)

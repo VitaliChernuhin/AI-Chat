@@ -184,10 +184,7 @@ final class FeatureCell: UICollectionViewCell {
         layer.cornerRadius = 24
         clipsToBounds = true
         
-        gradientLayer.colors = [
-            UIColor(red: 0.44, green: 0.53, blue: 0.71, alpha: 1.0).cgColor,
-            UIColor(red: 0.77, green: 0.35, blue: 0.52, alpha: 1.0).cgColor
-        ]
+        gradientLayer.colors = [AppColors.brandGradientStart.cgColor, AppColors.brandGradientEnd.cgColor]
         gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
         gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
         gradientLayer.isHidden = true
