@@ -38,6 +38,9 @@ final class AIChatViewModel {
     
     /// Отправляет сообщение пользователя к ИИ
     func sendMessage(_ text: String) {
+        // Если ожидаем ответ, не отправляем новый
+        guard !isAISpeaking else { return }
+        
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
         

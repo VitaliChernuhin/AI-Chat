@@ -26,6 +26,7 @@ final class ChatView: UIView {
         cv.showsVerticalScrollIndicator = false
         cv.register(ChatUserCell.self, forCellWithReuseIdentifier: ChatUserCell.reuseIdentifier)
         cv.register(ChatTypingIndicatorCell.self, forCellWithReuseIdentifier: ChatTypingIndicatorCell.reuseIdentifier)
+        cv.register(ChatAICell.self, forCellWithReuseIdentifier: ChatAICell.reuseIdentifier)
         return cv
     }()
     
@@ -135,26 +136,28 @@ private extension ChatView {
 private extension ChatView {
     
     func createCompositionalLayout() -> UICollectionViewLayout {
-        // 1. Одиночный элемент (бабл сообщения)
+
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(60) // Высота подстроится под текст
+            heightDimension: .estimated(60)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
-        // 2. Вертикальная группа (строка списка)
+        item.edgeSpacing = NSCollectionLayoutEdgeSpacing(
+            leading: nil,
+            top: .fixed(24),
+            trailing: nil,
+            bottom: nil
+        )
+        
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .estimated(60)
         )
+        
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
         
-        group.interItemSpacing = .fixed(12)
-        
-        // 3. Секция, куда складываются группы сообщений
         let section = NSCollectionLayoutSection(group: group)
-        
-        // Общие отступы сверху и снизу для всей ленты чата
         section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0)
         
         return UICollectionViewCompositionalLayout(section: section)

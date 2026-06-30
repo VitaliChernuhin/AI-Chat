@@ -178,10 +178,13 @@ private extension AIChatViewController {
         viewModel.$isAISpeaking
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isSpeaking in
+                guard let self = self else { return }
+                
+                self.inputBarView.setSendingState(isLoading: isSpeaking)
+                
                 if !isSpeaking {
-                    self?.chatView.reloadAndScrollToBottom()
+                    self.chatView.reloadAndScrollToBottom()
                 }
-                print("Анимация трех точек: \(isSpeaking)")
             }
             .store(in: &cancellables)
     }
@@ -205,28 +208,38 @@ extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDele
             ) as? ChatTypingIndicatorCell else {
                 return UICollectionViewCell()
             }
-            
-            cell.startAnimating()
-            cell.backgroundColor = .clear
             return cell
         }
         
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: ChatUserCell.reuseIdentifier,
-            for: indexPath
-        ) as? ChatUserCell else {
-            return UICollectionViewCell()
-        }
-        
         let message = viewModel.messages[indexPath.item]
-        cell.configure(with: message)
-        cell.backgroundColor = .clear
         
-        return cell
+        switch message.sender {
+        case .user:
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatUserCell.reuseIdentifier,
+                for: indexPath
+            ) as? ChatUserCell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: message)
+            cell.backgroundColor = .clear
+            return cell
+            
+        case .ai:
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ChatAICell.reuseIdentifier,
+                for: indexPath
+            ) as? ChatAICell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: message)
+            cell.backgroundColor = .clear
+            return cell
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-
+        
         if let typingCell = cell as? ChatTypingIndicatorCell {
             typingCell.startAnimating()
         }

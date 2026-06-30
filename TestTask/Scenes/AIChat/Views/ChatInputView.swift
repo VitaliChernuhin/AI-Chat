@@ -246,6 +246,14 @@ final class ChatInputView: UIView {
         onStateChanged?(state)
     }
     
+    func setSendingState(isLoading: Bool) {
+        sendButton.isEnabled = !isLoading
+        
+        UIView.animate(withDuration: 0.2) {
+            self.sendButton.alpha = isLoading ? 0.5 : 1.0
+        }
+    }
+    
     // MARK: - Handlers
     @objc private func arrowButtonTapped() {
         onArrowTapped?()
