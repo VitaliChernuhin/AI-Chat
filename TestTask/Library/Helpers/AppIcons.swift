@@ -35,4 +35,15 @@ enum AppIcons {
         static let chatAvatar = UIImage(named: "ic_chat_avatar")
         static let history = UIImage(named: "ic_history")
     }
+    
+    enum Alert {
+   
+        static let successCheck = UIImage(named: "ic_success_check")
+        
+        /// Системный знак предупреждения, покрашенный в неоново-розовый цвет бренда! ⚠️
+        static let errorWarning: UIImage? = {
+            let config = UIImage.SymbolConfiguration(paletteColors: [AppColors.brandGradientEnd])
+            return UIImage(systemName: "exclamationmark.triangle.fill", withConfiguration: config)
+        }()
+    }
 }

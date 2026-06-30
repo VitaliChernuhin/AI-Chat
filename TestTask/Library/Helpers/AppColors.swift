@@ -35,4 +35,7 @@ enum AppColors {
     static let welcomeSubtitle = UIColor(red: 133/255, green: 131/255, blue: 134/255, alpha: 1.0)
     static let typingBubbleBackground = UIColor(red: 20/255, green: 16/255, blue: 23/255, alpha: 1.0)
     static let typingDotColor = UIColor(red: 43/255, green: 40/255, blue: 46/255, alpha: 1.0)
+    
+    // MARK: - Alert
+    static let alertBackground = UIColor(hex: "#1F191F")
 }

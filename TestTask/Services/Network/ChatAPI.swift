@@ -47,7 +47,6 @@ extension ChatAPI: TargetType {
         switch self {
         case .sendMessage(_, let userId, let appId, let locale, _, let request):
             
-            // 1. Собираем Query-параметры в словарь
             var urlParameters: [String: Any] = [
                 "user_id": userId,
                 "app_id": appId
@@ -57,14 +56,11 @@ extension ChatAPI: TargetType {
                 urlParameters["locale"] = locale
             }
             
-            // 2. Превращаем нашу Encodable-структуру запроса (Body) в словарь для Moya
-            // (Используем JSONEncoder, чтобы не писать ручной маппинг)
             guard let bodyData = try? JSONEncoder().encode(request),
                   let bodyParameters = try? JSONSerialization.jsonObject(with: bodyData) as? [String: Any] else {
                 return .requestPlain
             }
             
-            // 3. Комбинируем: bodyParameters уйдут в тело JSON, а urlParameters — в хвост ссылки после "?"
             return .requestCompositeParameters(
                 bodyParameters: bodyParameters,
                 bodyEncoding: JSONEncoding.default,

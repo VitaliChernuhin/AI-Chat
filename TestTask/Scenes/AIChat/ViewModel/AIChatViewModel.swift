@@ -50,13 +50,11 @@ final class AIChatViewModel {
         
         // 2. Включаем индикатор набора текста для AI (три точки)
         isAISpeaking = true
-        
-        // 3. Генерируем стабильный UUID чата на основе user + app scope через твое расширение String+UUID
+    
         let userId = AppConfig.testUserId
         let appId = AppConfig.testApplicationId
-        let targetChatId = "\(userId)_\(appId)".UUIDString
-        
-        // 4. Стучимся в сеть к ИИ через Moya/Combine
+        let targetChatId = "\(userId)_\(appId)".deterministicUUIDString
+
         chatNetworkService.sendPrompt(
             chatId: targetChatId,
             userId: userId,
@@ -71,6 +69,9 @@ final class AIChatViewModel {
             
             if case .failure(let error) = completion {
                 print("Ошибка сети во ViewModel: \(error.localizedDescription)")
+                
+                self.router.trigger(.alert(type: .error, message: error.localizedDescription))
+                
             }
         } receiveValue: { [weak self] response in
             guard let self = self else { return }
@@ -86,5 +87,9 @@ final class AIChatViewModel {
     // MARK: - Navigation Inputs
     func openHistory() {
         // router.trigger(.history)
+    }
+    
+    func back() {
+        router.trigger(.back)
     }
 }

@@ -27,6 +27,7 @@
 				AIChat/Model/ChatMessageItem.swift,
 				AIChat/Model/ChatScreenState.swift,
 				AIChat/ViewModel/AIChatViewModel.swift,
+				AIChat/Views/Cells/ChatAICell.swift,
 				AIChat/Views/Cells/ChatTypingIndicatorCell.swift,
 				AIChat/Views/Cells/ChatUserCell.swift,
 				AIChat/Views/ChatInputView.swift,
@@ -45,6 +46,7 @@
 		5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "TestTask" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Base/AppAlertViewController.swift,
 				Base/BaseViewController.swift,
 				Base/NavigationBarOwner.swift,
 				Base/Routable.swift,
@@ -56,6 +58,8 @@
 				Helpers/AppConfig.swift,
 				Helpers/AppIcons.swift,
 				Helpers/FontFamaly.swift,
+				Navigation/AppAlertTransitionAnimation.swift,
+				Views/AppAlertView.swift,
 				Views/AppNavigationBar.swift,
 				Views/GradientBackgroundView.swift,
 			);

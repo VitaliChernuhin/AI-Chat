@@ -13,5 +13,5 @@ enum AppConfig {
     
     static let testApplicationId = "com.test.test"
     
-    static let testUserId = "Apphud User ID"
+    static let testUserId = "Apphud_User_ID"
 }

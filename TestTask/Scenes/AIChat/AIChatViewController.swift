@@ -97,6 +97,10 @@ final class AIChatViewController: BaseViewController {
             // Передаем отправку текста во вью-модель
             self?.viewModel.sendMessage(text)
         }
+        
+        navigationBar.onBackTapped = { [weak self] in
+            self?.viewModel.back()
+        }
     }
 }
 
@@ -173,7 +177,10 @@ private extension AIChatViewController {
         // 3. Слушаем индикатор набора текста AI
         viewModel.$isAISpeaking
             .receive(on: DispatchQueue.main)
-            .sink { isSpeaking in
+            .sink { [weak self] isSpeaking in
+                if !isSpeaking {
+                    self?.chatView.reloadAndScrollToBottom()
+                }
                 print("Анимация трех точек: \(isSpeaking)")
             }
             .store(in: &cancellables)

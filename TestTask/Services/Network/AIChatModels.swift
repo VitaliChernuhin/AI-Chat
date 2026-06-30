@@ -45,6 +45,32 @@ enum AIChatError: Error {
     case unknown(String)
 }
 
+// MARK: - LocalizedError Conformance (English Version)
+extension AIChatError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .validation(let reason):
+            return reason.isEmpty
+                ? "Invalid data format. Please verify your input parameters."
+                : "Validation error: \(reason)"
+            
+        case .chatNotFound:
+            return "Active session not found. Please try to restart the chat."
+            
+        case .serverError:
+            return "Server is temporarily unavailable. We are fixing it, please try again later."
+            
+        case .noInternet:
+            return "Connection lost. Please check your internet network and retry."
+            
+        case .unknown(let details):
+            return details.isEmpty
+                ? "An unexpected error occurred. Please try again."
+                : "Error details: \(details)"
+        }
+    }
+}
+
 // MARK: - Validation Error Models (422)
 
 struct ValidationErrorResponse: Decodable {
