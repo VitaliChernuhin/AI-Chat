@@ -223,7 +223,6 @@ extension ChatInputView {
             self.placeholderLabel.text = "Ask anything..."
         }
         
-        // Управляем видимостью плейсхолдера
         self.placeholderLabel.isHidden = !textView.text.isEmpty
         
         let block = { [weak self] in
@@ -260,24 +259,30 @@ extension ChatInputView {
         onStateChanged?(state)
     }
     
+    
     func setSendingState(isLoading: Bool) {
         sendButton.isEnabled = !isLoading
     }
     
     func clearInput() {
-        textView.text = ""
+        // 1. Очищаем текст через nil
+        textView.text = nil
         
-        textView.isScrollEnabled = false // Временно выключаем, чтобы заставить пересчитать высоту
+        // 2. СБРОС КЭША ВЫСОТЫ: Зануляем contentSize
+        textView.contentSize = .zero
         
-        textViewDidChange(textView)
+        // 3. ТРЮК С ПЕРЕРАСЧЕТОМ: Слегка дергаем инсеты контейнера,
+        // чтобы заставить TextKit жестко сбросить старые текстовые фреймы
+        let currentInsets = textView.textContainerInset
+        textView.textContainerInset = .zero
+        textView.textContainerInset = currentInsets
         
-        //Возвращаем скролл, если текст снова станет гигантским
-        textView.isScrollEnabled = true
+        // 4. Принудительно вызываем метод твоего делегата, чтобы сработал внутренний расчет высоты SnapKit
+        self.textViewDidChange(textView)
         
-        //Заставляем SnapKit мгновенно перерисовать панель ввода
+        // 5. Синхронно перерисовываем панель ввода
         self.layoutIfNeeded()
     }
-
 }
 
 // MARK: - UITextViewDelegate
@@ -290,7 +295,6 @@ extension ChatInputView: UITextViewDelegate {
         let size = textView.sizeThatFits(CGSize(width: textView.frame.width, height: .infinity))
         textView.isScrollEnabled = size.height >= Constants.maxTextViewHeight
         
-        // Магия для плавного роста панели ввода в iOS: заставляем родительское view обновить разметку
         if let superview = self.superview {
             UIView.animate(withDuration: 0.1) {
                 superview.layoutIfNeeded()

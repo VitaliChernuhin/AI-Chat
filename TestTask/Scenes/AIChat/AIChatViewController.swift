@@ -94,9 +94,8 @@ final class AIChatViewController: BaseViewController {
         }
         
         inputBarView.onSendTapped = { [weak self] text in
-            // Передаем отправку текста во вью-модель
-            self?.viewModel.sendMessage(text)
             self?.inputBarView.clearInput()
+            self?.viewModel.sendMessage(text)
         }
         
         navigationBar.onBackTapped = { [weak self] in
