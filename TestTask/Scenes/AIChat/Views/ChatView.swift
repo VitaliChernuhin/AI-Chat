@@ -93,7 +93,7 @@ final class ChatView: UIView {
     }
 }
 
-// MARK: - ReloadAndScrollToBottom (public)
+// MARK: - Reload and scroll to bottom (public)
 extension ChatView {
     
     /// Полностью обновляет ленту чата и автоматически скроллит её к последнему сообщению
@@ -108,6 +108,14 @@ extension ChatView {
             let indexPath = IndexPath(item: totalItems - 1, section: 0)
             self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
         }
+    }
+    
+    func scrollToBottom(animated: Bool = true) {
+        let lastItem = collectionView.numberOfItems(inSection: 0) - 1
+        guard lastItem >= 0 else { return }
+        
+        let indexPath = IndexPath(item: lastItem, section: 0)
+        collectionView.scrollToItem(at: indexPath, at: .bottom, animated: animated)
     }
 }
 

@@ -47,7 +47,7 @@ final class AIChatViewController: BaseViewController {
         setupViews()
         setupConstraints()
         setupActions()
-        setupKeyboardObservers() // Запускаем слежку за клавиатурой
+        setupKeyboardObservers()
         bindViewModel()
     }
     
@@ -133,18 +133,21 @@ private extension AIChatViewController {
         
         inputBarView.snp.remakeConstraints { make in
             if isKeyboardShowing {
-                // Привязываемся к самому низу ЭКРАНА, вычитая высоту клавиатуры
                 make.bottom.equalToSuperview().offset(-keyboardHeight)
             } else {
-                // Возвращаем привязку к Safe Area, когда клавиатура скрыта
                 make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             }
             make.leading.trailing.equalToSuperview()
         }
         
         let animationOptions = UIView.AnimationOptions(rawValue: curveRaw << 16)
+        
         UIView.animate(withDuration: duration, delay: 0, options: animationOptions, animations: {
             self.view.layoutIfNeeded()
+            
+            if isKeyboardShowing && !self.viewModel.isAISpeaking {
+                self.chatView.scrollToBottom(animated: false)
+            }
         }, completion: nil)
     }
     

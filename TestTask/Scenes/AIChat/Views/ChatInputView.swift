@@ -248,10 +248,6 @@ final class ChatInputView: UIView {
     
     func setSendingState(isLoading: Bool) {
         sendButton.isEnabled = !isLoading
-        
-        UIView.animate(withDuration: 0.2) {
-            self.sendButton.alpha = isLoading ? 0.5 : 1.0
-        }
     }
     
     // MARK: - Handlers

@@ -11,9 +11,8 @@ import SnapKit
 final class ChatUserCell: UICollectionViewCell {
     
     // MARK: - UI Components
-    private let bubbleView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
+    private let bubbleView: GradientView = {
+        let view = GradientView()
         view.layer.cornerRadius = 24
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner]
         view.clipsToBounds = true
@@ -29,27 +28,17 @@ final class ChatUserCell: UICollectionViewCell {
         return label
     }()
     
-    private let gradientLayer = CAGradientLayer()
-    
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
         setupConstraints()
-        setupGradient()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        // Обновление для градиента
-        contentView.layoutIfNeeded()
-        gradientLayer.frame = bubbleView.bounds
-    }
     
     // MARK: - Setup
     private func setupViews() {
@@ -70,17 +59,35 @@ final class ChatUserCell: UICollectionViewCell {
         }
     }
     
-    private func setupGradient() {
-        gradientLayer.colors = [AppColors.brandGradientStart.cgColor, AppColors.brandGradientEnd.cgColor]
-        // Горизонтальное направление градиента слева направо
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        
-        bubbleView.layer.insertSublayer(gradientLayer, at: 0)
-    }
-    
     // MARK: - Configure
     func configure(with message: ChatMessageItem) {
         messageLabel.text = message.text
+    }
+}
+
+// MARK: - Кастомный инкапсулированный GradientView (Секрет плавности)
+private final class GradientView: UIView {
+    
+    override class var layerClass: AnyClass {
+        return CAGradientLayer.self
+    }
+    
+    var gradientLayer: CAGradientLayer {
+        return layer as! CAGradientLayer
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupGradient()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupGradient() {
+        gradientLayer.colors = [AppColors.brandGradientStart.cgColor, AppColors.brandGradientEnd.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
     }
 }
