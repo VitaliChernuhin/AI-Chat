@@ -96,6 +96,7 @@ final class AIChatViewController: BaseViewController {
         inputBarView.onSendTapped = { [weak self] text in
             // Передаем отправку текста во вью-модель
             self?.viewModel.sendMessage(text)
+            self?.inputBarView.clearInput()
         }
         
         navigationBar.onBackTapped = { [weak self] in
@@ -168,28 +169,17 @@ private extension AIChatViewController {
             }
             .store(in: &cancellables)
         
-        // 2. Слушаем обновление массива сообщений для коллекции
-        viewModel.$messages
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] messages in
-                guard let self = self else { return }
-                self.chatView.reloadAndScrollToBottom(animated: true)
-            }
-            .store(in: &cancellables)
-        
-        // 3. Слушаем индикатор набора текста AI
-        viewModel.$isAISpeaking
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isSpeaking in
-                guard let self = self else { return }
-                
-                self.inputBarView.setSendingState(isLoading: isSpeaking)
-                
-                if !isSpeaking {
-                    self.chatView.reloadAndScrollToBottom()
-                }
-            }
-            .store(in: &cancellables)
+        Publishers.CombineLatest(viewModel.$messages, viewModel.$isAISpeaking)
+             .receive(on: DispatchQueue.main)
+             .sink { [weak self] _, isSpeaking in
+                 guard let self = self else { return }
+                 
+                 // Передаем состояние блокировки кнопке отправки
+                 self.inputBarView.setSendingState(isLoading: isSpeaking)
+                 // Один раз reload у коллекции
+                 self.chatView.reloadAndScrollToBottom(animated: true)
+             }
+             .store(in: &cancellables)
     }
 }
 

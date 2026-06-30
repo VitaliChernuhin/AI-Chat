@@ -198,7 +198,21 @@ final class ChatInputView: UIView {
         sendButton.addTarget(self, action: #selector(sendButtonTapped), for: .touchUpInside)
     }
     
-    // MARK: - Public State Management
+    // MARK: - Handlers
+    @objc private func arrowButtonTapped() {
+        onArrowTapped?()
+    }
+    
+    @objc private func sendButtonTapped() {
+        guard let text = textView.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        onSendTapped?(text)
+        textView.text = ""
+        updateUI(for: .editingEmpty) // Сбрасываем в пустое редактирование
+    }
+}
+
+// MARK: - Public methods
+extension ChatInputView {
     func updateUI(for state: State, animated: Bool = true) {
         currentState = state
         
@@ -250,17 +264,20 @@ final class ChatInputView: UIView {
         sendButton.isEnabled = !isLoading
     }
     
-    // MARK: - Handlers
-    @objc private func arrowButtonTapped() {
-        onArrowTapped?()
-    }
-    
-    @objc private func sendButtonTapped() {
-        guard let text = textView.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        onSendTapped?(text)
+    func clearInput() {
         textView.text = ""
-        updateUI(for: .editingEmpty) // Сбрасываем в пустое редактирование
+        
+        textView.isScrollEnabled = false // Временно выключаем, чтобы заставить пересчитать высоту
+        
+        textViewDidChange(textView)
+        
+        //Возвращаем скролл, если текст снова станет гигантским
+        textView.isScrollEnabled = true
+        
+        //Заставляем SnapKit мгновенно перерисовать панель ввода
+        self.layoutIfNeeded()
     }
+
 }
 
 // MARK: - UITextViewDelegate
