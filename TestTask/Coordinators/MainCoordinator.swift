@@ -62,7 +62,7 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             let router = currentRouter
             
             let subscription = Just(())
-                .delay(for: .seconds(10), scheduler: DispatchQueue.main)
+                .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
                 .sink { _ in
                     router.trigger(.dismissAlert)
                 }
