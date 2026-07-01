@@ -38,4 +38,8 @@ enum AppColors {
     
     // MARK: - Alert
     static let alertBackground = UIColor(hex: "#1F191F")
+    
+    // MARK: - Paywall Scene
+    static let paywallCloseButton = UIColor(red: 193/255, green: 193/255, blue: 197/255, alpha: 1.0)
+
 }

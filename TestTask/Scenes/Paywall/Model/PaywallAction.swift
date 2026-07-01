@@ -1,0 +1,15 @@
+//
+//  PaywallAction.swift
+//  TestTask
+//
+//  Created by Vit Chernuhin on 01.07.2026.
+//
+
+import Foundation
+
+// MARK: - Paywall Actions
+enum PaywallAction {
+    case closeTapped
+    case purchaseTapped
+    case selectProduct(PaywallViewModel.SubscriptionProduct)
+}

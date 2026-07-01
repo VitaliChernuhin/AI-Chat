@@ -39,6 +39,9 @@
 				MainPage/Views/AskAnyButton.swift,
 				MainPage/Views/FeatureCell.swift,
 				MainPage/Views/FeatureSubtitleView.swift,
+				Paywall/Model/PaywallAction.swift,
+				Paywall/PaywallViewController.swift,
+				Paywall/ViewModel/PaywallViewModel.swift,
 				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
@@ -50,6 +53,7 @@
 				Base/BaseViewController.swift,
 				Base/NavigationBarOwner.swift,
 				Base/Routable.swift,
+				Base/ViewEvent.swift,
 				"Extensions/Date+Format.swift",
 				"Extensions/String+UUID.swift",
 				"Extensions/UIColor+Extensions.swift",

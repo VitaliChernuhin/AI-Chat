@@ -15,7 +15,8 @@ enum MainRoute: Route {
     case back
     case aiChat
     case alert(type: AppAlertView.AlertType, message: String)
-    case dismissAlert
+    case dismiss
+    case paywall
 }
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
@@ -64,9 +65,9 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             let subscription = Just(())
                 .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
                 .sink { _ in
-                    router.trigger(.dismissAlert)
+                    router.trigger(.dismiss)
                 }
-
+            
             self.cancellables.insert(subscription)
             
             let transition: NavigationTransition = MainActor.assumeIsolated {
@@ -82,9 +83,22 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             }
             return transition
             
-        case .dismissAlert:
+        case .dismiss:
             return .dismiss()
+            
+        case .paywall:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configurePaywallScene(router: currentRouter)
+                // Настраиваем системную или кастомную анимацию выезда снизу вверх
+                
+                viewController.modalPresentationStyle = .fullScreen
+                viewController.modalTransitionStyle = .coverVertical // Нативный выезд снизу вверх
+                
+                return .present(viewController)
+            }
+            
         }
+        
     }
     
     // MARK: - Scene Configurations (private)
@@ -108,5 +122,11 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     @MainActor
     private static func configureAppAlertScene(type: AppAlertView.AlertType, message: String) -> UIViewController {
         AppAlertViewController(type: type, message: message)
+    }
+    
+    @MainActor
+    private static func configurePaywallScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        let viewModel = PaywallViewModel(router: router)
+        return PaywallViewController(viewModel: viewModel)
     }
 }

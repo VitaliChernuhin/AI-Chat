@@ -46,4 +46,12 @@ enum AppIcons {
             return UIImage(systemName: "exclamationmark.triangle.fill", withConfiguration: config)
         }()
     }
+    
+    enum Paywall {
+        static let close = UIImage(named: "ic_close")
+        static let resultInSeconds = UIImage(named: "ic_result_in_seconds")
+        static let turnAnyText = UIImage(named: "ic_turn_any_text")
+        static let simplifyComplexInformation = UIImage(named: "ic_simplify_complex_information")
+        static let createWithAITemplate = UIImage(named: "ic_create_with_AI_templates")
+    }
 }

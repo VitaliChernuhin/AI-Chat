@@ -236,6 +236,14 @@ extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath ) {
         let selectedItem = features[indexPath.item]
+        switch selectedItem.type {
+        case .fixWriting:
+            router.trigger(.paywall)
+        case .turnPhotoToVideo:
+            router.trigger(.paywall)
+        case .summarize:
+            router.trigger(.paywall)
+        }
         print("Нажали на карточку Bento: \(selectedItem.title)")
     }
 }
