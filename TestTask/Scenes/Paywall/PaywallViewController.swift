@@ -22,7 +22,6 @@ final class PaywallViewController: UIViewController {
         return button
     }()
     
-    // Главный жирный заголовок по центру экрана
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Create anything\nyou want"
@@ -33,7 +32,6 @@ final class PaywallViewController: UIViewController {
         return label
     }()
     
-    // Вертикальный стек, который соберет наши строчки преимуществ
     private let featuresStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -42,7 +40,16 @@ final class PaywallViewController: UIViewController {
         return stack
     }()
     
-    // Главная градиентная кнопка покупки
+    private lazy var productCollectionView: UICollectionView = {
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: createCompositionalLayout())
+        cv.backgroundColor = .clear
+        cv.isScrollEnabled = false // Всего 2 элемента, скролл выключаем
+        cv.dataSource = self
+        cv.delegate = self
+        cv.register(PaywallProductCell.self, forCellWithReuseIdentifier: PaywallProductCell.reuseIdentifier)
+        return cv
+    }()
+    
     private let unlockButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Unlock now", for: .normal)
@@ -53,12 +60,14 @@ final class PaywallViewController: UIViewController {
         return button
     }()
     
+    private let cancelAnytimeView = PaywallCancelAnytimeView()
+    
     // Стек для ссылок в подвале экрана
     private let footerStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .horizontal
         stack.spacing = 12
-        stack.distribution = .equalSpacing
+        stack.distribution = .fill
         return stack
     }()
     
@@ -67,6 +76,12 @@ final class PaywallViewController: UIViewController {
     
     private let unlockGradientLayer = CAGradientLayer()
     private var cancellables = Set<AnyCancellable>()
+    
+    // Массив данных для тарифов строго по дизайну
+    private let products: [(title: String, price: String, badge: String?)] = [
+        ("Yearly Access", "$59.99/yr", "SAVE 80%"),
+        ("Monthly Access", "$4.99/mo", nil)
+    ]
     
     // MARK: - Init
     init(viewModel: PaywallViewModel) {
@@ -105,6 +120,8 @@ private extension PaywallViewController {
         view.addSubview(closeButton)
         view.addSubview(titleLabel)
         view.addSubview(featuresStackView)
+        view.addSubview(productCollectionView)
+        view.addSubview(cancelAnytimeView)
         view.addSubview(unlockButton)
         view.addSubview(footerStackView)
         setupUnlockGradientLayer()
@@ -112,20 +129,24 @@ private extension PaywallViewController {
     }
     
     func setupFooter() {
-        let privacyButton = createFooterButton(title: "Privacy Policy", action: #selector(privacyTapped))
-        let restoreButton = createFooterButton(title: "Restore", action: #selector(restoreTapped))
-        let termsButton = createFooterButton(title: "Terms of Use", action: #selector(termsTapped))
+        let privacyButton = createFooterButton(title: "Privacy Policy", alignment: .left, action: #selector(privacyTapped))
+        let restoreButton = createFooterButton(title: "Restore", alignment: .center, action: #selector(restoreTapped))
+        let termsButton = createFooterButton(title: "Terms of Use", alignment: .right, action: #selector(termsTapped))
         
         footerStackView.addArrangedSubview(privacyButton)
         footerStackView.addArrangedSubview(restoreButton)
         footerStackView.addArrangedSubview(termsButton)
     }
     
-    func createFooterButton(title: String, action: Selector) -> UIButton {
+    func createFooterButton(title: String, alignment: UIControl.ContentHorizontalAlignment, action: Selector) -> UIButton {
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
-        button.setTitleColor(AppColors.paywallCloseButton, for: .normal)
-        button.titleLabel?.font = FontFamily.Inter.regular(size: 12)
+        button.setTitleColor(AppColors.paywallPriceText, for: .normal)
+        button.titleLabel?.font = FontFamily.Inter.regular(size: 11)
+        
+        // Жестко прижимаем текст внутри кнопки к нужному краю!
+        button.contentHorizontalAlignment = alignment
+        
         button.addTarget(self, action: action, for: .touchUpInside)
         return button
     }
@@ -166,15 +187,30 @@ private extension PaywallViewController {
         }
         featuresStackView.backgroundColor = .blue.withAlphaComponent(0.3)
         
-        footerStackView.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
+        productCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(featuresStackView.snp.bottom).offset(32)
+            make.leading.trailing.equalToSuperview().inset(16)
+            make.bottom.equalTo(cancelAnytimeView.snp.top).offset(-16)
+        }
+        productCollectionView.backgroundColor = .green.withAlphaComponent(0.3)
+        
+        cancelAnytimeView.snp.makeConstraints { make in
+            make.top.equalTo(productCollectionView.snp.bottom).offset(16)
+            make.bottom.equalTo(unlockButton.snp.top)
             make.centerX.equalToSuperview()
+            make.height.equalTo(40)
+        }
+        cancelAnytimeView.backgroundColor = .orange.withAlphaComponent(0.1)
+        
+        footerStackView.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-8)
+            make.leading.trailing.equalToSuperview().inset(16)
         }
         
         unlockButton.snp.makeConstraints { make in
-            make.bottom.equalTo(footerStackView.snp.top).offset(-24)
-            make.leading.trailing.equalToSuperview().inset(24)
-            make.height.equalTo(56)
+            make.bottom.equalTo(footerStackView.snp.top).offset(-16)
+            make.leading.trailing.equalToSuperview().inset(16)
+            make.height.equalTo(50)
         }
     }
 }
@@ -248,6 +284,32 @@ private extension PaywallViewController {
     }
 }
 
+// MARK: - Create composition layout (private)
+private extension PaywallViewController {
+    func createCompositionalLayout() -> UICollectionViewLayout {
+        
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .fractionalHeight(1.0)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 12, trailing: 0)
+        
+        // Вертикальная группа (высота плашки 72pt + наш отступ 12pt = 84pt)
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(84)
+        )
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        
+        // Секция
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = .zero
+        
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+}
 
 // MARK: - Bind ViewModel (private)
 private extension PaywallViewController {
@@ -267,5 +329,44 @@ private extension PaywallViewController {
         UIView.animate(withDuration: 0.3) {
             self.closeButton.alpha = isVisible ? 1.0 : 0.0
         }
+    }
+}
+
+// MARK: - UICollectionViewDataSource & UICollectionViewDelegate
+extension PaywallViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return products.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: PaywallProductCell.reuseIdentifier,
+            for: indexPath
+        ) as? PaywallProductCell else {
+            return UICollectionViewCell()
+        }
+        
+        let product = products[indexPath.item]
+        
+        // Временная визуализация: пусть первая карточка (Year) со старта горит выбранной
+        let isSelected = (indexPath.item == 0)
+        
+        cell.configure(
+            title: product.title,
+            price: product.price,
+            badge: product.badge,
+            isSelected: isSelected
+        )
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // Передаем тап по тарифу во вью-модель через наш PaywallAction
+        let selectedProduct: PaywallViewModel.SubscriptionProduct = (indexPath.item == 0) ? .year : .month
+        viewModel.handleAction(.selectProduct(selectedProduct))
+        
+        // Вручную обновляем коллекцию, чтобы переключить градиентный бордер
+        collectionView.reloadData()
     }
 }

@@ -42,6 +42,9 @@
 				Paywall/Model/PaywallAction.swift,
 				Paywall/PaywallViewController.swift,
 				Paywall/ViewModel/PaywallViewModel.swift,
+				Paywall/Views/PaywallBadgeGradientView.swift,
+				Paywall/Views/PaywallCancelAnytimeView.swift,
+				Paywall/Views/PaywallProductCell.swift,
 				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;

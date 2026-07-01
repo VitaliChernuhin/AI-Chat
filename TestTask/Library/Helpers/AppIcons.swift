@@ -53,5 +53,6 @@ enum AppIcons {
         static let turnAnyText = UIImage(named: "ic_turn_any_text")
         static let simplifyComplexInformation = UIImage(named: "ic_simplify_complex_information")
         static let createWithAITemplate = UIImage(named: "ic_create_with_AI_templates")
+        static let cancelAnyTime = UIImage(named: "ic_cancel_anyTime")
     }
 }

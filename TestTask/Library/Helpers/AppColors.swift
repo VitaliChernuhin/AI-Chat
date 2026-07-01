@@ -41,5 +41,13 @@ enum AppColors {
     
     // MARK: - Paywall Scene
     static let paywallCloseButton = UIColor(red: 193/255, green: 193/255, blue: 197/255, alpha: 1.0)
+   
+    static let paywallCellBackground = UIColor(red: 10/255, green: 7/255, blue: 14/255, alpha: 1.0)
+    
+    static let paywallCellBorder = UIColor(red: 83/255, green: 81/255, blue: 86/255, alpha: 1.0)
+    
+    static let paywallPriceText = UIColor(red: 96/255, green: 96/255, blue: 96/255, alpha: 1.0)
+
+
 
 }
