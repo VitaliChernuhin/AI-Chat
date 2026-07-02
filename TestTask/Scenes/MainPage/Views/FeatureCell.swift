@@ -123,8 +123,7 @@ final class FeatureCell: UICollectionViewCell {
         }
         
         // 1. Измеряем высоту экрана для адаптивной типографики
-        let screenHeight = UIScreen.main.bounds.height
-        let isSmallScreen = screenHeight <= 667 // Флаг для iPhone SE
+        let isSmallScreen = UIDevice.isSmallScreen
         
         let titleFont: UIFont
         let subtitleFont: UIFont
@@ -207,9 +206,7 @@ final class FeatureCell: UICollectionViewCell {
             make.edges.equalToSuperview()
         }
         
-        // 1. Измеряем высоту экрана прямо для констрейнтов
-        let screenHeight = UIScreen.main.bounds.height
-        let isSmallScreen = screenHeight <= 667 // Флаг для iPhone SE
+        let isSmallScreen = UIDevice.isSmallScreen
         
         // Адаптивные отступы: на SE поднимаем иконку выше (12pt вместо 24pt)
         let topOffset: CGFloat = isSmallScreen ? 12 : 24

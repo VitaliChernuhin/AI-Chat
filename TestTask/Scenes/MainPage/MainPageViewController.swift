@@ -178,8 +178,7 @@ extension MainPageViewController {
     private func createCompositionalLayout() -> UICollectionViewLayout {
         return UICollectionViewCompositionalLayout { _, _ in
             
-            let screenHeight = UIScreen.main.bounds.height
-            let bentoGridHeight: CGFloat = screenHeight <= 667 ? 255 : 335
+            let bentoGridHeight: CGFloat = UIDevice.isSmallScreen ? 255 : 335
             
             // 1. ЛЕВАЯ КАРТОЧКА
             let leftItem = NSCollectionLayoutItem(
