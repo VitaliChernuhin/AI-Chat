@@ -21,6 +21,15 @@ final class PaywallProductCell: UICollectionViewCell {
         return view
     }()
     
+    private lazy var stackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, priceLabel])
+        stack.axis = .vertical
+        stack.distribution = .fill
+        stack.alignment = .leading
+        stack.spacing = 4
+        return stack
+    }()
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = AppColors.accent
@@ -38,7 +47,7 @@ final class PaywallProductCell: UICollectionViewCell {
     // Розовый бейдж скидки (показываем только для годовой)
     private let badgeContainerView: PaywallBadgeGradientView = {
         let view = PaywallBadgeGradientView()
-        view.layer.cornerRadius = 32
+        view.layer.cornerRadius = 12.5
         view.clipsToBounds = true
         view.isHidden = true
         return view
@@ -47,8 +56,9 @@ final class PaywallProductCell: UICollectionViewCell {
     private let badgeLabel: UILabel = {
         let label = UILabel()
         label.text = "SAVE 80%"
-        label.textColor = .white
-        label.font = FontFamily.Inter.bold(size: 11)
+        label.textColor = AppColors.accent
+        label.font = FontFamily.Inter.medium(size: 14)
+        label.textAlignment = .center
         return label
     }()
     
@@ -71,8 +81,7 @@ final class PaywallProductCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-//        gradientBorderLayer.frame = containerView.bounds
-//        updateGradientBorderPath()
+        updateGradientBorderGeometry()
     }
 }
 
@@ -80,66 +89,74 @@ final class PaywallProductCell: UICollectionViewCell {
 private extension PaywallProductCell {
     func setupViews() {
         contentView.addSubview(containerView)
-        containerView.addSubview(titleLabel)
-        containerView.addSubview(priceLabel)
-//        containerView.addSubview(badgeContainerView)
-//        badgeContainerView.addSubview(badgeLabel)
+        containerView.addSubview(stackView)
+        containerView.addSubview(badgeContainerView)
+        badgeContainerView.addSubview(badgeLabel)
     }
 }
 
 // MARK: - Setup constraints (private)
 private extension PaywallProductCell {
     func setupConstraints() {
-        // Контейнер карточки растягиваем по краям ячейки
         containerView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        titleLabel.snp.makeConstraints { make in
-            make.leading.equalTo(containerView.snp.leading).offset(20)
-            make.centerY.equalTo(containerView.snp.centerY)
+        stackView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(16)
+            make.leading.equalToSuperview().offset(24)
+            make.trailing.lessThanOrEqualToSuperview().offset(-16)
         }
         
-        priceLabel.snp.makeConstraints { make in
-            make.trailing.equalTo(containerView.snp.trailing).offset(-20)
-            make.centerY.equalTo(containerView.snp.centerY)
-        }
-        
-        // Бейдж привязываем относительно titleLabel, но по центру containerView
         badgeContainerView.snp.makeConstraints { make in
-            make.leading.equalTo(titleLabel.snp.trailing).offset(12)
-            make.centerY.equalTo(containerView.snp.centerY)
-            make.height.equalTo(20)
+            make.top.equalTo(stackView.snp.top)
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(25)
+            make.width.equalTo(102)
         }
         
         badgeLabel.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview().inset(8)
-            make.centerY.equalToSuperview()
+            make.centerY.equalTo(badgeContainerView.snp.centerY)
         }
     }
 }
 
 // MARK: - Gradient border methods (private)
 private extension PaywallProductCell {
+    
     func setupGradientBorder() {
         gradientBorderLayer.colors = [AppColors.brandGradientStart.cgColor, AppColors.brandGradientEnd.cgColor]
         gradientBorderLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
         gradientBorderLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        gradientBorderLayer.isHidden = true // По умолчанию скрыт, включаем только приisSelected
+        gradientBorderLayer.isHidden = true
         
-        // Создаем маску, чтобы красить только границу бордера, а не всю вьюху
         let maskLayer = CAShapeLayer()
         maskLayer.fillColor = UIColor.clear.cgColor
         maskLayer.strokeColor = UIColor.black.cgColor
-        maskLayer.lineWidth = 2
+        maskLayer.lineWidth = 1
         gradientBorderLayer.mask = maskLayer
         
         containerView.layer.addSublayer(gradientBorderLayer)
     }
     
-    func updateGradientBorderPath() {
+    func updateGradientBorderGeometry() {
+        containerView.layoutIfNeeded()
+        gradientBorderLayer.frame = containerView.bounds
+        
         guard let maskLayer = gradientBorderLayer.mask as? CAShapeLayer else { return }
-        let path = UIBezierPath(roundedRect: containerView.bounds, cornerRadius: containerView.layer.cornerRadius)
+        
+        let insetBounds = containerView.bounds.insetBy(dx: 0.5, dy: 0.5)
+        
+        // Это идеально компенсирует затягивание дуги и заставит градиент лечь
+        // точь-в-точь по контуру родного скругления карточки!
+        let targetRadius = containerView.layer.cornerRadius - 1
+        
+        let path = UIBezierPath(
+            roundedRect: insetBounds,
+            byRoundingCorners: .allCorners,
+            cornerRadii: CGSize(width: targetRadius, height: targetRadius)
+        )
         maskLayer.path = path.cgPath
     }
 }

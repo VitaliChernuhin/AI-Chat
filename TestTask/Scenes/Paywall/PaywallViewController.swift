@@ -102,7 +102,6 @@ final class PaywallViewController: UIViewController {
         buildFeaturesList()
         
         bindViewModel()
-        
         viewModel.handleViewEvent(.viewDidLoad)
     }
     
@@ -172,45 +171,41 @@ private extension PaywallViewController {
             make.width.height.equalTo(44)
         }
         
-        let isSmallScreen = UIScreen.main.bounds.height <= 667 // iPhone SE / 7 / 8
+        let isSmallScreen = UIDevice.isSmallScreen
         
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(isSmallScreen ? 100 : 147)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(isSmallScreen ? 60 : 147)
             make.leading.trailing.equalToSuperview().inset(53)
         }
-        titleLabel.backgroundColor = .red
         
         featuresStackView.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(isSmallScreen ? 20 : 32)
+            make.top.equalTo(titleLabel.snp.bottom).offset(isSmallScreen ? 12 : 32)
             make.leading.equalTo(titleLabel.snp.leading).offset(8.5)
             make.trailing.equalTo(titleLabel.snp.trailing).offset(-8.5)
         }
-        featuresStackView.backgroundColor = .blue.withAlphaComponent(0.3)
         
         productCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(featuresStackView.snp.bottom).offset(32)
+            make.top.equalTo(featuresStackView.snp.bottom).offset(isSmallScreen ? 16 : 32)
             make.leading.trailing.equalToSuperview().inset(16)
-            make.bottom.equalTo(cancelAnytimeView.snp.top).offset(-16)
+  
+            make.bottom.equalTo(cancelAnytimeView.snp.top).offset(isSmallScreen ? -8 : -16)
         }
-        productCollectionView.backgroundColor = .green.withAlphaComponent(0.3)
         
         cancelAnytimeView.snp.makeConstraints { make in
-            make.top.equalTo(productCollectionView.snp.bottom).offset(16)
             make.bottom.equalTo(unlockButton.snp.top)
             make.centerX.equalToSuperview()
             make.height.equalTo(40)
         }
-        cancelAnytimeView.backgroundColor = .orange.withAlphaComponent(0.1)
-        
-        footerStackView.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-8)
-            make.leading.trailing.equalToSuperview().inset(16)
-        }
         
         unlockButton.snp.makeConstraints { make in
-            make.bottom.equalTo(footerStackView.snp.top).offset(-16)
+            make.bottom.equalTo(footerStackView.snp.top).offset(isSmallScreen ? -12 : -16)
             make.leading.trailing.equalToSuperview().inset(16)
             make.height.equalTo(50)
+        }
+        
+        footerStackView.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(isSmallScreen ? -4 : -8)
+            make.leading.trailing.equalToSuperview().inset(16)
         }
     }
 }

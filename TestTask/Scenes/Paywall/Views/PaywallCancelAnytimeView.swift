@@ -49,7 +49,7 @@ private extension PaywallCancelAnytimeView {
     func setupConstraints() {
         iconView.snp.makeConstraints { make in
             make.leading.centerY.equalToSuperview()
-            make.width.height.equalTo(24)
+            make.width.height.equalTo(12)
         }
         
         textLabel.snp.makeConstraints { make in

@@ -62,6 +62,7 @@
 				"Extensions/Date+Format.swift",
 				"Extensions/String+UUID.swift",
 				"Extensions/UIColor+Extensions.swift",
+				"Extensions/UIDevice+Extensions.swift",
 				"Extensions/UIView+Reusable.swift",
 				Helpers/AppColors.swift,
 				Helpers/AppConfig.swift,
