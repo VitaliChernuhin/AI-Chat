@@ -14,7 +14,7 @@ final class PaywallProductCell: UICollectionViewCell {
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = AppColors.paywallCellBackground
-        view.layer.cornerRadius = 20
+        view.layer.cornerRadius = 24
         view.layer.borderWidth = 1
         view.layer.borderColor = AppColors.paywallCellBorder.cgColor
         view.clipsToBounds = true
@@ -71,8 +71,8 @@ final class PaywallProductCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        gradientBorderLayer.frame = containerView.bounds
-        updateGradientBorderPath()
+//        gradientBorderLayer.frame = containerView.bounds
+//        updateGradientBorderPath()
     }
 }
 
@@ -82,8 +82,8 @@ private extension PaywallProductCell {
         contentView.addSubview(containerView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(priceLabel)
-        containerView.addSubview(badgeContainerView)
-        badgeContainerView.addSubview(badgeLabel)
+//        containerView.addSubview(badgeContainerView)
+//        badgeContainerView.addSubview(badgeLabel)
     }
 }
 
@@ -118,7 +118,6 @@ private extension PaywallProductCell {
         }
     }
 }
-
 
 // MARK: - Gradient border methods (private)
 private extension PaywallProductCell {

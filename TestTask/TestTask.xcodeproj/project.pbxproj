@@ -54,8 +54,10 @@
 			membershipExceptions = (
 				Base/AppAlertViewController.swift,
 				Base/BaseViewController.swift,
-				Base/NavigationBarOwner.swift,
-				Base/Routable.swift,
+				Base/Protocols/NavigationBarOwner.swift,
+				Base/Protocols/Routable.swift,
+				Base/Protocols/ViewActionHandable.swift,
+				Base/Protocols/ViewEventHandable.swift,
 				Base/ViewEvent.swift,
 				"Extensions/Date+Format.swift",
 				"Extensions/String+UUID.swift",

@@ -9,7 +9,7 @@ import Foundation
 import Combine
 @preconcurrency import XCoordinator
 
-final class PaywallViewModel {
+final class PaywallViewModel: ViewEventHandlable, ViewActionHandlable {
     
     // Внутреннее перечисление тарифов для бизнес-логики
     enum SubscriptionProduct {
@@ -31,14 +31,12 @@ final class PaywallViewModel {
     // MARK: - Init
     init(router: WeakRouter<MainRoute>) {
         self.router = router
-        // Инициализатор теперь абсолютно чист от преждевременных таймеров!
     }
     
     // MARK: - Lifecycle Handler (ViewEvent)
     func handleViewEvent(_ event: ViewEvent) {
         switch event {
         case .viewDidLoad:
-            // Отсчет задержки начинается строго в момент реального появления UI на экране!
             startCloseButtonDelayTimer()
         }
     }
@@ -57,10 +55,11 @@ final class PaywallViewModel {
             print("Бизнес-логика: тариф переключен на \(product)")
         }
     }
-    
-    // MARK: - Private Methods
-    private func startCloseButtonDelayTimer() {
-        // Продуктовое бизнес-правило задержки крестика на 2 секунды
+}
+
+// MARK: - Private Methods
+private extension PaywallViewModel {
+    func startCloseButtonDelayTimer() {
         Just(())
             .delay(for: .seconds(2.0), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -69,7 +68,7 @@ final class PaywallViewModel {
             .store(in: &cancellables)
     }
     
-    private func processPurchase() {
+    func processPurchase() {
         print("Запуск процесса покупки в StoreKit/Apphud для тарифа: \(selectedProduct)")
     }
 }
