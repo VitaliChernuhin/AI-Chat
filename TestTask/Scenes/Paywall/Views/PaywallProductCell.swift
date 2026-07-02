@@ -8,6 +8,13 @@
 import UIKit
 import SnapKit
 
+protocol PaywallProductCellRepresentable {
+    var title: String { get }
+    var price: String { get }
+    var badge: String? { get }
+    var isSelected: Bool { get }
+}
+
 final class PaywallProductCell: UICollectionViewCell {
     
     // MARK: - UI Components
@@ -183,5 +190,17 @@ extension PaywallProductCell {
             containerView.layer.borderColor = AppColors.paywallCellBorder.cgColor
             gradientBorderLayer.isHidden = true
         }
+    }
+}
+
+// MARK: - Configure with PaywallProductCellRepresentable
+extension PaywallProductCell {
+    func configure(with representable: PaywallProductCellRepresentable) {
+        configure(
+            title: representable.title,
+            price: representable.price,
+            badge: representable.badge,
+            isSelected: representable.isSelected
+        )
     }
 }

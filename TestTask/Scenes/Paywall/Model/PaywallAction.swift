@@ -11,5 +11,5 @@ import Foundation
 enum PaywallAction {
     case closeTapped
     case purchaseTapped
-    case selectProduct(PaywallViewModel.SubscriptionProduct)
+    case selectProduct(SubscriptionProduct)
 }

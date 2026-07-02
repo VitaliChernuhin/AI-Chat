@@ -37,5 +37,9 @@ final class ServicesFactory: @unchecked Sendable {
         container.register(AIChatNetworkService.self) { _ in
             AIChatNetworkServiceImpl()
         }.inObjectScope(.transient)
+        
+        container.register(SubscriptionService.self) { _ in
+            SubscriptionServiceImpl()
+        }.inObjectScope(.container)
     }
 }

@@ -98,7 +98,6 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             }
             
         }
-        
     }
     
     // MARK: - Scene Configurations (private)
@@ -126,7 +125,7 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
     @MainActor
     private static func configurePaywallScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        let viewModel = PaywallViewModel(router: router)
+        let viewModel = PaywallViewModel(router: router, subscriptionService: ServicesFactory.shared.service(type: SubscriptionService.self))
         return PaywallViewController(viewModel: viewModel)
     }
 }

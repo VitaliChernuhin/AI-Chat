@@ -77,12 +77,6 @@ final class PaywallViewController: UIViewController {
     private let unlockGradientLayer = CAGradientLayer()
     private var cancellables = Set<AnyCancellable>()
     
-    // Массив данных для тарифов строго по дизайну
-    private let products: [(title: String, price: String, badge: String?)] = [
-        ("Yearly Access", "$59.99/yr", "SAVE 80%"),
-        ("Monthly Access", "$4.99/mo", nil)
-    ]
-    
     // MARK: - Init
     init(viewModel: PaywallViewModel) {
         self.viewModel = viewModel
@@ -187,7 +181,7 @@ private extension PaywallViewController {
         productCollectionView.snp.makeConstraints { make in
             make.top.equalTo(featuresStackView.snp.bottom).offset(isSmallScreen ? 16 : 32)
             make.leading.trailing.equalToSuperview().inset(16)
-  
+            
             make.bottom.equalTo(cancelAnytimeView.snp.top).offset(isSmallScreen ? -8 : -16)
         }
         
@@ -315,6 +309,13 @@ private extension PaywallViewController {
                 self?.animateCloseButtonVisibility(isVisible: isVisible)
             }
             .store(in: &cancellables)
+        
+        viewModel.$uiModels
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.productCollectionView.reloadData()
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -329,9 +330,8 @@ private extension PaywallViewController {
 
 // MARK: - UICollectionViewDataSource & UICollectionViewDelegate
 extension PaywallViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return products.count
+        return viewModel.uiModels.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -342,26 +342,14 @@ extension PaywallViewController: UICollectionViewDataSource, UICollectionViewDel
             return UICollectionViewCell()
         }
         
-        let product = products[indexPath.item]
-        
-        // Временная визуализация: пусть первая карточка (Year) со старта горит выбранной
-        let isSelected = (indexPath.item == 0)
-        
-        cell.configure(
-            title: product.title,
-            price: product.price,
-            badge: product.badge,
-            isSelected: isSelected
-        )
+        let model = viewModel.uiModels[indexPath.item]
+        cell.configure(with: model)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // Передаем тап по тарифу во вью-модель через наш PaywallAction
-        let selectedProduct: PaywallViewModel.SubscriptionProduct = (indexPath.item == 0) ? .year : .month
-        viewModel.handleAction(.selectProduct(selectedProduct))
         
-        // Вручную обновляем коллекцию, чтобы переключить градиентный бордер
-        collectionView.reloadData()
+        let selectedModel = viewModel.uiModels[indexPath.item]
+        viewModel.handleAction(.selectProduct(selectedModel.type))
     }
 }

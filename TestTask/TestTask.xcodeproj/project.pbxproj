@@ -40,6 +40,7 @@
 				MainPage/Views/FeatureCell.swift,
 				MainPage/Views/FeatureSubtitleView.swift,
 				Paywall/Model/PaywallAction.swift,
+				Paywall/Model/ProductUIModel.swift,
 				Paywall/PaywallViewController.swift,
 				Paywall/ViewModel/PaywallViewModel.swift,
 				Paywall/Views/PaywallBadgeGradientView.swift,
@@ -89,6 +90,8 @@
 				Network/AIChatModels.swift,
 				Network/ChatAPI.swift,
 				ServicesFactory.swift,
+				SubscriptionService/SubscriprionService.swift,
+				SubscriptionService/SubscriptionProduct.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};
