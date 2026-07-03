@@ -11,7 +11,11 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+
+        // AppHud initialization
+        let subscriptionService = ServicesFactory.shared.service(type: SubscriptionService.self)
+        subscriptionService.initializeSDK()
+        
         return true
     }
 

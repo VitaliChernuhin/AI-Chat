@@ -12,4 +12,12 @@ extension UIDevice {
     static var isSmallScreen: Bool {
         return UIScreen.main.bounds.height <= 667
     }
+    
+    static var isRunningOnSimulator: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
 }

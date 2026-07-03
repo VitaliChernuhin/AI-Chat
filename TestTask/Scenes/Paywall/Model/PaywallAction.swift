@@ -12,4 +12,7 @@ enum PaywallAction {
     case closeTapped
     case purchaseTapped
     case selectProduct(SubscriptionProduct)
+    case privatePolicyTapped
+    case restoreTapped
+    case termsOfUseTapped
 }

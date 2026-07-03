@@ -1,5 +1,5 @@
 {
-  "originHash" : "302f0e96c143fe9fcd3e0feddf997662381a8d7cd8b85d9c0549d15abea8c3e6",
+  "originHash" : "686fffdc6ace5b7b799e688e230bbaccd7c527e1a33ab9ba6576c975a586e544",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "7595cbcf59809f9977c5f6378500de2ad73b7ddb",
         "version" : "5.12.0"
+      }
+    },
+    {
+      "identity" : "apphudsdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apphud/ApphudSDK",
+      "state" : {
+        "revision" : "eeda1d8a9d2ac28acf7cb62174c4ed2087f09657",
+        "version" : "4.4.0"
       }
     },
     {

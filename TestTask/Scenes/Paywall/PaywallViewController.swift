@@ -220,9 +220,15 @@ private extension PaywallViewController {
         viewModel.handleAction(.purchaseTapped)
     }
     
-    @objc func privacyTapped() { print("Privacy Policy tapped") }
-    @objc func restoreTapped() { print("Restore Purchases tapped") }
-    @objc func termsTapped() { print("Terms of Use tapped") }
+    @objc func privacyTapped() {
+        viewModel.handleAction(.privatePolicyTapped)
+    }
+    @objc func restoreTapped() {
+        viewModel.handleAction(.restoreTapped)
+    }
+    @objc func termsTapped() {
+        viewModel.handleAction(.termsOfUseTapped)
+    }
 }
 
 // MARK: - Build features list logic (private)
@@ -285,7 +291,7 @@ private extension PaywallViewController {
         
         item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 12, trailing: 0)
         
-        // Вертикальная группа (высота плашки 72pt + наш отступ 12pt = 84pt)
+        // Вертикальная группа (высота плашки 72pt + отступ 12pt = 84pt)
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .absolute(84)
@@ -350,6 +356,6 @@ extension PaywallViewController: UICollectionViewDataSource, UICollectionViewDel
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
         let selectedModel = viewModel.uiModels[indexPath.item]
-        viewModel.handleAction(.selectProduct(selectedModel.type))
+        viewModel.handleAction(.selectProduct(selectedModel.product))
     }
 }

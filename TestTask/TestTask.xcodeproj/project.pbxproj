@@ -13,6 +13,7 @@
 		5F7CB3642FE6DA9B00D65A0F /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3632FE6DA9B00D65A0F /* Swinject */; };
 		5F7CB3672FE6DAB100D65A0F /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3662FE6DAB100D65A0F /* CombineMoya */; };
 		5F7CB3692FE6DAB100D65A0F /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3682FE6DAB100D65A0F /* Moya */; };
+		5FDB65322FF6B6C9008D9DBC /* ApphudSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 5FDB65312FF6B6C9008D9DBC /* ApphudSDK */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +56,7 @@
 			membershipExceptions = (
 				Base/AppAlertViewController.swift,
 				Base/BaseViewController.swift,
+				Base/Logable.swift,
 				Base/Protocols/NavigationBarOwner.swift,
 				Base/Protocols/Routable.swift,
 				Base/Protocols/ViewActionHandable.swift,
@@ -80,6 +82,13 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				MainCoordinator.swift,
+			);
+			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+		};
+		5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "TestTask" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TestPurchases.storekit,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};
@@ -113,6 +122,9 @@
 		};
 		5F5CE1322FE6C43900760AA3 /* Support */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "TestTask" target */,
+			);
 			path = Support;
 			sourceTree = "<group>";
 		};
@@ -153,6 +165,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5F7CB35F2FE6DA8B00D65A0F /* SnapKit in Frameworks */,
+				5FDB65322FF6B6C9008D9DBC /* ApphudSDK in Frameworks */,
 				5F7CB3642FE6DA9B00D65A0F /* Swinject in Frameworks */,
 				5F7CB3672FE6DAB100D65A0F /* CombineMoya in Frameworks */,
 				5F7CB35C2FE6DA3200D65A0F /* XCoordinatorCombine in Frameworks */,
@@ -213,6 +226,7 @@
 				5F7CB3632FE6DA9B00D65A0F /* Swinject */,
 				5F7CB3662FE6DAB100D65A0F /* CombineMoya */,
 				5F7CB3682FE6DAB100D65A0F /* Moya */,
+				5FDB65312FF6B6C9008D9DBC /* ApphudSDK */,
 			);
 			productName = TestTask;
 			productReference = 5F422AF62FE66FD500BB5B9D /* TestTask.app */;
@@ -247,6 +261,7 @@
 				5F7CB35D2FE6DA8B00D65A0F /* XCRemoteSwiftPackageReference "SnapKit" */,
 				5F7CB3622FE6DA9B00D65A0F /* XCRemoteSwiftPackageReference "Swinject" */,
 				5F7CB3652FE6DAB100D65A0F /* XCRemoteSwiftPackageReference "Moya" */,
+				5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5F422AF72FE66FD500BB5B9D /* Products */;
@@ -284,8 +299,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -300,6 +316,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -320,8 +337,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -336,6 +354,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -534,6 +553,14 @@
 				minimumVersion = 15.0.3;
 			};
 		};
+		5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apphud/ApphudSDK";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -566,6 +593,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5F7CB3652FE6DAB100D65A0F /* XCRemoteSwiftPackageReference "Moya" */;
 			productName = Moya;
+		};
+		5FDB65312FF6B6C9008D9DBC /* ApphudSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */;
+			productName = ApphudSDK;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

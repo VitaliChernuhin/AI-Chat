@@ -10,12 +10,16 @@ import Combine
 @preconcurrency import XCoordinator
 
 @MainActor
-final class PaywallViewModel {
+final class PaywallViewModel: Logable {
     
     // MARK: - Properties
     let router: WeakRouter<MainRoute>
     private let subscriptionService: SubscriptionService
     
+    // Выбранный по умолчанию продукт (Yearly со скидкой)
+    private(set) var selectedProduct: SubscriptionProduct = .year(totalPrice: 69.99)
+    
+    // Реактивные стейты для UI-слоя
     @Published private(set) var uiModels: [ProductUIModel] = []
     @Published private(set) var isCloseButtonVisible: Bool = false
     @Published private(set) var isPurchasing: Bool = false
@@ -28,25 +32,7 @@ final class PaywallViewModel {
         self.subscriptionService = subscriptionService
         
         setupInitialUIModels()
-        bindSubscriptionService()
     }
-    
-    // MARK: - Public Methods
-    func restorePurchases() {
-        guard !isPurchasing else { return }
-        Task {
-            do {
-                let success = try await subscriptionService.restorePurchases()
-                if success {
-                    print("Бизнес-логика: Покупки успешно восстановлены!")
-                    await router.trigger(.dismiss)
-                }
-            } catch {
-                print("Бизнес-логика: Ошибка восстановления: \(error.localizedDescription)")
-            }
-        }
-    }
-    
 }
 
 // MARK: - ViewEventHandable (implementation)
@@ -55,12 +41,14 @@ extension PaywallViewModel {
         switch event {
         case .viewDidLoad:
             startCloseButtonDelayTimer()
+            loadProducts()
         }
     }
 }
 
-// MARK: - ViewActionHandable (implementation)
+// MARK: - ViewActionHandable (Действия пользователя)
 extension PaywallViewModel {
+    
     func handleAction(_ action: PaywallAction) {
         guard !isPurchasing else { return }
         
@@ -69,52 +57,140 @@ extension PaywallViewModel {
             router.trigger(.dismiss)
             
         case .purchaseTapped:
-            Task { await executePurchase() }
+            executePurchase()
             
-        case .selectProduct(let productType):// [^1]
-            // Пересчитываем стейт выделения
+        case .selectProduct(let product):
+            self.selectedProduct = product
+            
             for index in 0..<uiModels.count {
-                uiModels[index].isSelected = (uiModels[index].type == productType)
+                uiModels[index].isSelected = (uiModels[index].product == product)
             }
-            print("Бизнес-логика: выбран продукт \(productType)")
+            self.log(message: "📱 Выбран продукт: \(product)")
+            
+        case .restoreTapped:
+            // Вызываем наш готовый приватный метод реактивного восстановления!
+            restorePurchases()
+            
+        case .privatePolicyTapped:
+            self.log(message: "🌐 Пользователь запросил Privacy Policy. Открываем Safari...")
+            // Здесь в будущем дергаем роут координатора для открытия WebViewController или системного Safari
+            // router.trigger(.openURL(AppConfig.privacyURL))
+            
+        case .termsOfUseTapped:
+            self.log(message: "🌐 Пользователь запросил Terms of Use. Открываем Safari...")
+            // router.trigger(.openURL(AppConfig.termsURL))
         }
     }
 }
 
-// MARK: - Private methods
+// MARK: - Private Methods
 private extension PaywallViewModel {
     
     func startCloseButtonDelayTimer() {
         Just(true)
             .delay(for: .seconds(2.0), scheduler: DispatchQueue.main)
-            .assign(to: \.isCloseButtonVisible, on: self)
+            .sink { [weak self] isVisible in
+                self?.isCloseButtonVisible = isVisible
+            }
             .store(in: &cancellables)
     }
     
     func setupInitialUIModels() {
-        uiModels = [
-            ProductUIModel(type: .year, title: "Yearly Access", price: "$59.99/yr", badge: "SAVE 80%", isSelected: true),
-            ProductUIModel(type: .month, title: "Monthly Access", price: "$4.99/mo", badge: nil, isSelected: false)
-        ]
-    }
-    
-    func bindSubscriptionService() {
-        subscriptionService.isPurchasing
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.isPurchasing, on: self)
-            .store(in: &cancellables)
-    }
-    
-    func executePurchase() async {
-        guard let selectedProductType = uiModels.first(where: { $0.isSelected })?.type else { return }
-        
-        do {
-            let success = try await subscriptionService.purchase(selectedProductType)
-            if success {
-                await router.trigger(.dismiss)
-            }
-        } catch {
-            print("Бизнес-логика: Ошибка транзакции: \(error.localizedDescription)")
-        }
+        uiModels = [ ProductUIModel(product: .year(totalPrice: 59.99), isSelected: true, badge: "SAVE 80%"), ProductUIModel(product: .month(totalPrice: 4.99), isSelected: false) ]
     }
 }
+
+// MARK: - Load products (private)
+private extension PaywallViewModel {
+    func loadProducts() {
+        subscriptionService.loadProducts()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                if case .failure(let error) = completion {
+                    self.log(message: "❌ Не удалось загрузить актуальные цены из Apphud: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] actualProducts in
+                guard let self = self else { return }
+                guard !actualProducts.isEmpty else { return }
+                
+                self.uiModels = actualProducts.map { apphudProduct in
+                    ProductUIModel(
+                        product: apphudProduct,
+                        isSelected: (apphudProduct == self.selectedProduct),
+                        badge: apphudProduct.badgeText
+                    )
+                }
+                
+                self.log(message: "✅ UI-модели успешно обновлены реальными данными из Apphud!")
+            }
+            .store(in: &cancellables)
+    }
+}
+
+// MARK: - Execute purchases (private)
+private extension PaywallViewModel {
+    func executePurchase() {
+        guard let selectedProduct = uiModels.first(where: { $0.isSelected })?.product else { return }
+        
+        subscriptionService.purchase(selectedProduct)
+            .receive(on: DispatchQueue.main)
+            .handleEvents(
+                receiveSubscription: { [weak self] _ in
+                    self?.isPurchasing = true
+                },
+                receiveCompletion: { [weak self] _ in
+                    self?.isPurchasing = false
+                }
+            )
+            .sink { [weak self] completion in
+                if case .failure(let error) = completion {
+                    self?.log(message: "❌ Ошибка транзакции: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] isSuccess in
+                guard let self = self else { return }
+                
+                if isSuccess {
+                    self.log(message: "🎉 Транзакция прошла успешно, закрываем пейволл!")
+                    self.router.trigger(.dismiss)
+                } else {
+                    self.log(message: "⚠️ Транзакция была отменена пользователем или прервана.")
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+
+// MARK: - Restore purchases (private)
+private extension PaywallViewModel {
+    func restorePurchases() {
+        guard !isPurchasing else { return }
+        
+        subscriptionService.restorePurchases()
+            .receive(on: DispatchQueue.main)
+            .handleEvents(
+                receiveSubscription: { [weak self] _ in
+                    self?.isPurchasing = true
+                },
+                receiveCompletion: { [weak self] _ in
+                    self?.isPurchasing = false
+                }
+            )
+            .sink { [weak self] completion in
+                if case .failure(let error) = completion {
+                    self?.log(message: "❌ Ошибка восстановления: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] isSuccess in
+                guard let self = self else { return }
+                
+                if isSuccess {
+                    self.log(message: "🎉 Покупки успешно восстановлены!")
+                    self.router.trigger(.dismiss)
+                } else {
+                    self.log(message: "⚠️ Восстанавливать нечего на этом аккаунте.")
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+

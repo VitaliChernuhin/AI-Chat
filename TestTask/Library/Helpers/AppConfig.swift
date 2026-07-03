@@ -14,4 +14,8 @@ enum AppConfig {
     static let testApplicationId = "com.test.test"
     
     static let testUserId = "Apphud_User_ID"
+    
+    static let apphudToken = "app_FmCjFTwjWpcLSafxT8vCDeVffJyfFS"
+    
+    static let apphudPaywallId = "main"
 }
