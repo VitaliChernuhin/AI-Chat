@@ -20,6 +20,11 @@ enum AppIcons {
         static let bgWaveLine = UIImage(named: "bg_wave_line")
         static let bulletDot = UIImage(named: "ic_bullet_dot")
         static let play = UIImage(named: "play")
+        
+        static let systemLock: UIImage? = {
+            let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+            return UIImage(systemName: "lock.fill", withConfiguration: config)
+        }()
     }
     
     // MARK: - Chat
@@ -37,7 +42,7 @@ enum AppIcons {
     }
     
     enum Alert {
-   
+        
         static let successCheck = UIImage(named: "ic_success_check")
         
         /// Системный знак предупреждения, покрашенный в неоново-розовый цвет бренда! ⚠️

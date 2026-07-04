@@ -37,6 +37,8 @@
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
 				MainPage/Model/FeatureType.swift,
+				MainPage/Model/MainPageAction.swift,
+				MainPage/ViewModel/MainPageViewModel.swift,
 				MainPage/Views/AskAnyButton.swift,
 				MainPage/Views/FeatureCell.swift,
 				MainPage/Views/FeatureSubtitleView.swift,

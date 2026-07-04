@@ -144,7 +144,8 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
     // MARK: - Scene Configurations (private)
     @MainActor
     private static func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        MainPageViewController(router: router)
+        let viewModel = MainPageViewModel(router: router, subscriptionService: ServicesFactory.shared.service(type: SubscriptionService.self))
+        return MainPageViewController(viewModel: viewModel)
     }
     
     @MainActor

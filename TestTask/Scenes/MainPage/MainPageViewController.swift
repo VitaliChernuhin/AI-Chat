@@ -7,18 +7,8 @@
 
 import UIKit
 import SnapKit
-import XCoordinator
 
-final class MainPageViewController: UIViewController, Routable {
-    
-    // MARK: - Properties
-    internal let router: WeakRouter<MainRoute>
-    
-    private let features: [FeatureItem] = [
-        FeatureItem(type: .turnPhotoToVideo),
-        FeatureItem(type: .fixWriting),
-        FeatureItem(type: .summarize)
-    ]
+final class MainPageViewController: UIViewController {
     
     // MARK: - UI Components
     private let backgroundView = GradientBackgroundView()
@@ -76,10 +66,11 @@ final class MainPageViewController: UIViewController, Routable {
         return collectionView
     }()
     
+    private let viewModel: MainPageViewModel
     
     // MARK: - Init
-    init(router: WeakRouter<MainRoute>) {
-        self.router = router
+    init(viewModel: MainPageViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -93,6 +84,8 @@ final class MainPageViewController: UIViewController, Routable {
         setupViews()
         setupConstraints()
         setupActions()
+        
+        viewModel.handleViewEvent(.viewDidLoad)
     }
     
     override func viewDidLayoutSubviews() {
@@ -163,11 +156,11 @@ final class MainPageViewController: UIViewController, Routable {
     
     // MARK: - Actions
     @objc private func settingsButtonTapped() {
-        router.trigger(.settings)
+        viewModel.handleAction(.settingsTapped)
     }
     
     @objc private func askButtonTapped() {
-        router.trigger(.aiChat)
+        viewModel.handleAction(.aiChatTapped)
     }
 }
 
@@ -222,27 +215,20 @@ extension MainPageViewController {
 extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return features.count
+        return viewModel.features.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeatureCell.reuseIdentifier, for: indexPath) as? FeatureCell else {
             return UICollectionViewCell()
         }
-        cell.configure(with: features[indexPath.item])
+        let feature = viewModel.features[indexPath.item]
+        cell.configure(with: feature)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath ) {
-        let selectedItem = features[indexPath.item]
-        switch selectedItem.type {
-        case .fixWriting:
-            router.trigger(.paywall)
-        case .turnPhotoToVideo:
-            router.trigger(.paywall)
-        case .summarize:
-            router.trigger(.paywall)
-        }
-        print("Нажали на карточку Bento: \(selectedItem.title)")
+        let selectedItem = viewModel.features[indexPath.item]
+        viewModel.handleAction(.featureTapped(type: selectedItem.type))
     }
 }
