@@ -73,12 +73,11 @@ extension PaywallViewModel {
             
         case .privatePolicyTapped:
             self.log(message: "🌐 Пользователь запросил Privacy Policy. Открываем Safari...")
-            // Здесь в будущем дергаем роут координатора для открытия WebViewController или системного Safari
-            // router.trigger(.openURL(AppConfig.privacyURL))
+            self.router.trigger(.openPrivacy)
             
         case .termsOfUseTapped:
             self.log(message: "🌐 Пользователь запросил Terms of Use. Открываем Safari...")
-            // router.trigger(.openURL(AppConfig.termsURL))
+            self.router.trigger(.openTerms)
         }
     }
 }

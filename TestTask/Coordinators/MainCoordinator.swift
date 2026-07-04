@@ -17,6 +17,9 @@ enum MainRoute: Route {
     case alert(type: AppAlertView.AlertType, message: String)
     case dismiss
     case paywall
+    
+    case openPrivacy
+    case openTerms
 }
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
@@ -97,6 +100,17 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
                 return .present(viewController)
             }
             
+        case .openPrivacy:
+            return MainActor.assumeIsolated {
+                UIApplication.shared.open(AppConfig.privacyURL, options: [:], completionHandler: nil)
+                return .none()
+            }
+            
+        case .openTerms:
+            return MainActor.assumeIsolated {
+                UIApplication.shared.open(AppConfig.termsURL, options: [:])
+                return .none()
+            }
         }
     }
     
