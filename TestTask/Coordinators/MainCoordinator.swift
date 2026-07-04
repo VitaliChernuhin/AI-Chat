@@ -16,6 +16,7 @@ enum MainRoute: Route {
     case aiChat
     case alert(type: AppAlertView.AlertType, message: String)
     case dismiss
+    case dismissAfterAlert(type: AppAlertView.AlertType, message: String)
     case paywall
     
     case openPrivacy
@@ -25,6 +26,7 @@ enum MainRoute: Route {
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
     private var cancellables = Set<AnyCancellable>()
+    private let alertTime = 2.5
     
     init() {
         let navigationController = MainActor.assumeIsolated {
@@ -66,7 +68,7 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             let router = currentRouter
             
             let subscription = Just(())
-                .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                .delay(for: .seconds(alertTime), scheduler: DispatchQueue.main)
                 .sink { _ in
                     router.trigger(.dismiss)
                 }
@@ -88,6 +90,31 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             
         case .dismiss:
             return .dismiss()
+            
+        case .dismissAfterAlert(let type, let message):
+            let router = currentRouter
+            
+            let subscription = Just(())
+                .delay(for: .seconds(alertTime), scheduler: DispatchQueue.main)
+                .sink { _ in
+                    router.trigger(.dismiss) {
+                        router.trigger(.dismiss)
+                    }
+                }
+            self.cancellables.insert(subscription)
+            
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureAppAlertScene(type: type, message: message)
+                viewController.modalPresentationStyle = .overFullScreen
+                
+                let customAnimation = Animation(
+                    presentation: AppAlertTransitionAnimation(isPresenting: true),
+                    dismissal: AppAlertTransitionAnimation(isPresenting: false)
+                )
+                
+                // Презентуем алерт на экран
+                return .present(viewController, animation: customAnimation)
+            }
             
         case .paywall:
             return MainActor.assumeIsolated {

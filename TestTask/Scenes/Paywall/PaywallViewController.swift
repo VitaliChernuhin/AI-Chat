@@ -322,6 +322,14 @@ private extension PaywallViewController {
                 self?.productCollectionView.reloadData()
             }
             .store(in: &cancellables)
+        
+        viewModel.$isPurchasing
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isPurchasing in
+                guard let self = self else { return }
+                self.updateLoadingState(isPurchasing: isPurchasing)
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -330,6 +338,19 @@ private extension PaywallViewController {
     func animateCloseButtonVisibility(isVisible: Bool) {
         UIView.animate(withDuration: 0.3) {
             self.closeButton.alpha = isVisible ? 1.0 : 0.0
+        }
+    }
+}
+
+// MARK: - Loading state (private)
+private extension PaywallViewController {
+    func updateLoadingState(isPurchasing: Bool) {
+        self.unlockButton.isEnabled = !isPurchasing
+        self.closeButton.isEnabled = !isPurchasing
+        
+        UIView.animate(withDuration: 0.2) {
+            self.unlockButton.alpha = isPurchasing ? 0.6 : 1.0
+            self.closeButton.alpha = isPurchasing ? 0.3 : 1.0
         }
     }
 }

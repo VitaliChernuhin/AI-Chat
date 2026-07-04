@@ -68,7 +68,6 @@ extension PaywallViewModel {
             self.log(message: "📱 Выбран продукт: \(product)")
             
         case .restoreTapped:
-            // Вызываем наш готовый приватный метод реактивного восстановления!
             restorePurchases()
             
         case .privatePolicyTapped:
@@ -108,6 +107,8 @@ private extension PaywallViewModel {
                 guard let self = self else { return }
                 if case .failure(let error) = completion {
                     self.log(message: "❌ Не удалось загрузить актуальные цены из Apphud: \(error.localizedDescription)")
+                    let friendlyMessage = "Failed to load pricing. Please check your internet connection."
+                    self.router.trigger(.alert(type: .error, message: friendlyMessage))
                 }
             } receiveValue: { [weak self] actualProducts in
                 guard let self = self else { return }
@@ -120,7 +121,6 @@ private extension PaywallViewModel {
                         badge: apphudProduct.badgeText
                     )
                 }
-                
                 self.log(message: "✅ UI-модели успешно обновлены реальными данными из Apphud!")
             }
             .store(in: &cancellables)
@@ -143,28 +143,37 @@ private extension PaywallViewModel {
                 }
             )
             .sink { [weak self] completion in
+                guard let self = self else { return }
                 if case .failure(let error) = completion {
-                    self?.log(message: "❌ Ошибка транзакции: \(error.localizedDescription)")
+                    self.log(message: "❌ Ошибка транзакции: \(error.localizedDescription)")
+                    self.isPurchasing = false
+                    
+                    // При обычной ошибке триггерим стандартный алерт (экран НЕ закрываем)
+                    self.router.trigger(.alert(type: .error, message: error.localizedDescription))
                 }
             } receiveValue: { [weak self] isSuccess in
                 guard let self = self else { return }
+                self.isPurchasing = false
                 
                 if isSuccess {
-                    self.log(message: "🎉 Транзакция прошла успешно, закрываем пейволл!")
-                    self.router.trigger(.dismiss)
+                    self.log(message: "🎉 Транзакция прошла успешно!")
+                    
+                    // Координатор покажет чек-марк на 2.5 сек и сам уберет пейволл
+                    self.router.trigger(.dismissAfterAlert(
+                        type: .success,
+                        message: "Subscription activated! Thank you!"
+                    ))
                 } else {
-                    self.log(message: "⚠️ Транзакция была отменена пользователем или прервана.")
+                    self.log(message: "⚠️ Транзакция была отменена пользователем.")
                 }
             }
             .store(in: &cancellables)
     }
 }
 
-// MARK: - Restore purchases (private)
+// MARK: - Execute restore (private)
 private extension PaywallViewModel {
     func restorePurchases() {
-        guard !isPurchasing else { return }
-        
         subscriptionService.restorePurchases()
             .receive(on: DispatchQueue.main)
             .handleEvents(
@@ -176,20 +185,30 @@ private extension PaywallViewModel {
                 }
             )
             .sink { [weak self] completion in
+                guard let self = self else { return }
                 if case .failure(let error) = completion {
-                    self?.log(message: "❌ Ошибка восстановления: \(error.localizedDescription)")
+                    self.log(message: "❌ Ошибка восстановления покупок: \(error.localizedDescription)")
+                    self.isPurchasing = false
+                    
+                    // Показываем стандартную ошибку, экран подписки оставляем открытым
+                    self.router.trigger(.alert(type: .error, message: error.localizedDescription))
                 }
             } receiveValue: { [weak self] isSuccess in
                 guard let self = self else { return }
+                self.isPurchasing = false
                 
                 if isSuccess {
-                    self.log(message: "🎉 Покупки успешно восстановлены!")
-                    self.router.trigger(.dismiss)
+                    self.log(message: "🎉 Покупки успешно восстановлены, закрываем сцену подписки!")
+                    
+                    self.router.trigger(.dismissAfterAlert(
+                        type: .success,
+                        message: "Purchases successfully restored!"
+                    ))
                 } else {
-                    self.log(message: "⚠️ Восстанавливать нечего на этом аккаунте.")
+                    self.log(message: "⚠️ Активных подписок для восстановления не обнаружено.")
+                    self.router.trigger(.alert(type: .error, message: "No active subscriptions found."))
                 }
             }
             .store(in: &cancellables)
     }
 }
-
