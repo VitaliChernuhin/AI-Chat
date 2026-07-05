@@ -10,8 +10,26 @@ import Combine
 import StoreKit
 import ApphudSDK
 
+enum SubscriptionServiceError: Error, CustomStringConvertible {
+    case sdkNotInitialized
+    case paywallNotFound
+    case productMappingFailed
+
+    var description: String {
+        switch self {
+        case .sdkNotInitialized:
+            return "Subscription SDK is not ready. Using fallback data."
+        case .paywallNotFound:
+            return "Paywall not found in Apphud placements."
+        case .productMappingFailed:
+            return "Failed to map Apphud products to local models."
+        }
+    }
+}
+
 protocol SubscriptionService: AnyObject {
- 
+    @MainActor var isReady: Bool { get  }
+    
     @MainActor func initializeSDK()
     @MainActor func loadProducts() -> AnyPublisher<[SubscriptionProduct], Error>
     @MainActor func purchase(_ product: SubscriptionProduct) -> AnyPublisher<Bool, Error>
@@ -19,21 +37,27 @@ protocol SubscriptionService: AnyObject {
     @MainActor func checkActiveSubscription() -> AnyPublisher<Bool, Never>
 }
 
-
 final class SubscriptionServiceImpl: SubscriptionService, Logable {
     
     // MARK: - Private properties
     private lazy var mockProducts: [SubscriptionProduct] = {
         [.year(totalPrice: 69.99), .month(totalPrice: 7.99)]
     }()
+    
+    @MainActor
+    var isReady: Bool {
+        Apphud.currentUser() != nil
+    }
 }
 
-// MARK: - SDK Initialization
+// MARK: - Initiliaze SDK
 extension SubscriptionServiceImpl {
     @MainActor
     func initializeSDK() {
-        Apphud.start(apiKey: AppConfig.apphudToken)
-        log(message: "🎉 SDK Apphud успешно запущен!")
+        Apphud.start(apiKey: AppConfig.apphudToken) { [weak self] user in
+            guard let self = self else { return }
+            self.log(message: "🎉 Apphud user registered: \(user.userId)")
+        }
     }
 }
 
@@ -44,52 +68,44 @@ extension SubscriptionServiceImpl {
         Deferred {
             Future { [weak self] promise in
                 guard let self = self else { return }
-                
-                // 1. Режим симулятора: Мгновенно возвращаем локальные моки в promise!
+
                 if UIDevice.isRunningOnSimulator {
                     log(message: "Режим Симулятора. Выдаем моки напрямую...")
-                    promise(.success(self.mockProducts))
-                    return
+                    return promise(.success(self.mockProducts))
                 }
-                
+                if !self.isReady {
+                    return promise(.failure(SubscriptionServiceError.sdkNotInitialized))
+                }
                 Task { @MainActor in
                     let placements = await Apphud.placements()
-                    if let placement = placements.first(where: { $0.identifier == AppConfig.apphudPaywallId || $0.paywall?.identifier == AppConfig.apphudPaywallId }),
-                       let targetPaywall = placement.paywall {
-                        
-                        Apphud.paywallShown(targetPaywall)
-                        var mappedProducts: [SubscriptionProduct] = []
-                        
-                        for apphudProd in targetPaywall.products {
-                            let productId = apphudProd.productId.lowercased()
-                            let rawPrice = apphudProd.skProduct?.price.doubleValue ?? (productId.contains("yearly") ? 69.99 : 7.99)
-                            
-                            if productId.contains("yearly") || productId.contains("year") || productId.contains("1y") {
-                                mappedProducts.append(.year(totalPrice: rawPrice))
-                            } else if productId.contains("monthly") || productId.contains("month") || productId.contains("1m") {
-                                mappedProducts.append(.month(totalPrice: rawPrice))
-                            }
-                        }
-                        
-                        // ПРЯМОЙ ОТВЕТ: Публикуем массив реальных цен прямо в promise!
-                        promise(.success(mappedProducts))
-                    } else {
-                        // Если сети нет — шлем моки, но жестко сигнализируем об ошибке
-                        let error = NSError(
-                            domain: "SubscriptionService",
-                            code: -1009,
-                            userInfo: [NSLocalizedDescriptionKey: "Failed to load actual prices from Apphud."]
-                        )
-                        // Сначала отдаем моки, чтобы UI не пустовал (или можно вернуть failure по твоему усмотрению)
-                        promise(.success(self.mockProducts))
-                        promise(.failure(error))
+
+                    guard let placement = placements.first(where: {
+                        $0.identifier == AppConfig.apphudPaywallId
+                            || $0.paywall?.identifier == AppConfig.apphudPaywallId
+                    }),let paywall = placement.paywall
+                    else {
+                        let error = SubscriptionServiceError.paywallNotFound
+                        return promise(.failure(error))
                     }
+
+                    Apphud.paywallShown(paywall)
+
+                    let mappedProducts = paywall.products.compactMap { apphudProd in
+                        mapApphudProduct(to: apphudProd)
+                    }
+
+                    if mappedProducts.isEmpty {
+                        log(message: "Не удалось замаппить ни одного продукта")
+                        return promise(.failure(SubscriptionServiceError.productMappingFailed))
+                    }
+                    promise(.success(mappedProducts))
                 }
             }
         }
         .eraseToAnyPublisher()
     }
 }
+
 
 // MARK: - Purchase product
 extension SubscriptionServiceImpl {
@@ -135,12 +151,21 @@ extension SubscriptionServiceImpl {
                 }
                 
                 // 2. БОЕВОЙ РЕЖИМ: Отрабатывает строго на реальном устройстве через Apphud Placements
+                if !self.isReady {
+                    return promise(.failure(SubscriptionServiceError.sdkNotInitialized))
+                }
+                
                 Task { @MainActor in
+                    //Берем paywall
                     let placements = await Apphud.placements()
-                    guard let paywall = placements.first(where: { $0.identifier == AppConfig.apphudPaywallId || $0.paywall?.identifier == AppConfig.apphudPaywallId })?.paywall,
-                          let apphudProduct = paywall.products.first(where: {
-                              product.isYearly ? $0.productId.contains("yearly") : $0.productId.contains("monthly")
-                          }) else {
+                    guard let paywall = placements.first(where: { $0.identifier == AppConfig.apphudPaywallId || $0.paywall?.identifier == AppConfig.apphudPaywallId })?.paywall
+                    else {
+                        promise(.failure(SubscriptionServiceError.paywallNotFound))
+                        return
+                    }
+                    //Берем product
+                    guard let apphudProduct = self.searchApphudProduct(apphudProducts: paywall.products, by: product)
+                    else {
                         promise(.success(false))
                         return
                     }
@@ -164,8 +189,6 @@ extension SubscriptionServiceImpl {
                 if UIDevice.isRunningOnSimulator {
                     Task { @MainActor in
                         do {
-                            // Имитируем красивую задержку UI на 1 секунду
-                            try await Task.sleep(nanoseconds: 1_000_000_000)
                             self.log(message: "🤖 Симулятор: Запрос нативного восстановления чеков в Apple StoreKit...")
                             
                             // Синхронизируем очередь транзакций локального StoreKit-файла
@@ -186,14 +209,16 @@ extension SubscriptionServiceImpl {
                             
                             promise(.success(hasActiveSubscription))
                         } catch {
-                            // Если произошел сбой синхронизации — возвращаем false, чтобы не вешать UI
-                            promise(.success(false))
+                            promise(.failure(error))
                         }
                     }
                     return
                 }
                 
                 // 2. БОЕВОЙ РЕЖИМ: На реальном устройстве через Apphud
+                if !self.isReady {
+                    return promise(.failure(SubscriptionServiceError.sdkNotInitialized))
+                }
                 Task { @MainActor in
                     do {
                         let result = await Apphud.restorePurchases()
@@ -229,7 +254,6 @@ extension SubscriptionServiceImpl {
                     return
                 }
                 
-                // 2. БОЕВОЙ РЕЖИМ: Мгновенный синхронный ответ из кэша Apphud на реальном устройстве!
                 let hasPremium = Apphud.hasActiveSubscription()
                 promise(.success(hasPremium))
             }
@@ -238,3 +262,33 @@ extension SubscriptionServiceImpl {
     }
 }
 
+private extension SubscriptionServiceImpl {
+    func mapApphudProduct(to apphudProd: ApphudProduct) -> SubscriptionProduct? {
+        let productId = apphudProd.productId.lowercased()
+        let rawPrice = apphudProd.skProduct?.price.doubleValue
+        
+        if productId.hasSuffix("yearly") || productId.hasSuffix("1y") || productId.contains("year") {
+            let price = rawPrice ?? 69.99
+            return .year(totalPrice: price)
+        } else if productId.hasSuffix("monthly") || productId.hasSuffix("1m") || productId.contains("month") {
+            let price = rawPrice ?? 7.99
+            return .month(totalPrice: price)
+        }
+
+        return nil
+    }
+    
+    func searchApphudProduct(apphudProducts:[ApphudProduct], by product: SubscriptionProduct) -> ApphudProduct? {
+        if product.isYearly {
+            guard let apphudProduct = apphudProducts.first(where: { finded in
+                finded.productId.hasSuffix("yearly") || finded.productId.hasSuffix("1y") || finded.productId.contains("year")
+            }) else { return nil }
+            return apphudProduct
+        } else {
+            guard let apphudProduct = apphudProducts.first(where: { finded in
+                finded.productId.hasSuffix("monthly") || finded.productId.hasSuffix("1m") || finded.productId.contains("month")
+            }) else { return nil }
+            return apphudProduct
+        }
+    }
+}
