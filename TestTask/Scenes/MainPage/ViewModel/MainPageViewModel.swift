@@ -31,16 +31,20 @@ final class MainPageViewModel: ViewEventHandlable, ViewActionHandlable, Logable 
         self.router = router
         self.subscriptionService = subscriptionService
     }
-    
-    // MARK: - ViewEventHandable (implementation)
+}
+
+// MARK: - ViewEventHandable (implementation)
+extension MainPageViewModel {
     func handleViewEvent(_ event: ViewEvent) {
         switch event {
         case .viewDidLoad:
             bindSubscriptionStatus()
         }
     }
-    
-    // MARK: - ViewActionHandable (implementation)
+}
+
+// MARK: - ViewActionHandable (implementation)
+extension MainPageViewModel {
     func handleAction(_ action: MainPageAction) {
         switch action {
         case .aiChatTapped:
@@ -67,9 +71,11 @@ final class MainPageViewModel: ViewEventHandlable, ViewActionHandlable, Logable 
             router.trigger(.settings)
         }
     }
-    
-    // MARK: - Private Logic
-    private func bindSubscriptionStatus() {
+}
+
+// MARK: - Private methods
+private extension MainPageViewModel {
+    func bindSubscriptionStatus() {
         subscriptionService.checkActiveSubscription()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPremiumActive in
@@ -80,4 +86,5 @@ final class MainPageViewModel: ViewEventHandlable, ViewActionHandlable, Logable 
             }
             .store(in: &cancellables)
     }
+    
 }

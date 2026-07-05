@@ -14,7 +14,7 @@ enum SubscriptionServiceError: Error, CustomStringConvertible {
     case sdkNotInitialized
     case paywallNotFound
     case productMappingFailed
-
+    
     var description: String {
         switch self {
         case .sdkNotInitialized:
@@ -28,7 +28,8 @@ enum SubscriptionServiceError: Error, CustomStringConvertible {
 }
 
 protocol SubscriptionService: AnyObject {
-    @MainActor var isReady: Bool { get  }
+    @MainActor var isReady: Bool { get }
+    var isActive: AnyPublisher<Bool, Never> { get }
     
     @MainActor func initializeSDK()
     @MainActor func loadProducts() -> AnyPublisher<[SubscriptionProduct], Error>
@@ -44,9 +45,17 @@ final class SubscriptionServiceImpl: SubscriptionService, Logable {
         [.year(totalPrice: 69.99), .month(totalPrice: 7.99)]
     }()
     
+    private let _isActive = CurrentValueSubject<Bool, Never>(false)
+    private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Public properties
     @MainActor
     var isReady: Bool {
         Apphud.currentUser() != nil
+    }
+    
+    var isActive: AnyPublisher<Bool, Never> {
+        _isActive.eraseToAnyPublisher()
     }
 }
 
@@ -68,7 +77,7 @@ extension SubscriptionServiceImpl {
         Deferred {
             Future { [weak self] promise in
                 guard let self = self else { return }
-
+                
                 if UIDevice.isRunningOnSimulator {
                     log(message: "Режим Симулятора. Выдаем моки напрямую...")
                     return promise(.success(self.mockProducts))
@@ -78,22 +87,22 @@ extension SubscriptionServiceImpl {
                 }
                 Task { @MainActor in
                     let placements = await Apphud.placements()
-
+                    
                     guard let placement = placements.first(where: {
                         $0.identifier == AppConfig.apphudPaywallId
-                            || $0.paywall?.identifier == AppConfig.apphudPaywallId
+                        || $0.paywall?.identifier == AppConfig.apphudPaywallId
                     }),let paywall = placement.paywall
                     else {
                         let error = SubscriptionServiceError.paywallNotFound
                         return promise(.failure(error))
                     }
-
+                    
                     Apphud.paywallShown(paywall)
-
+                    
                     let mappedProducts = paywall.products.compactMap { apphudProd in
                         mapApphudProduct(to: apphudProd)
                     }
-
+                    
                     if mappedProducts.isEmpty {
                         log(message: "Не удалось замаппить ни одного продукта")
                         return promise(.failure(SubscriptionServiceError.productMappingFailed))
@@ -113,14 +122,11 @@ extension SubscriptionServiceImpl {
     func purchase(_ product: SubscriptionProduct) -> AnyPublisher<Bool, Error> {
         Deferred {
             Future { promise in
-                // 1. РЕЖИМ СИМУЛЯТОРА: Вызываем нативное окно StoreKit напрямую через Apple API!
                 if UIDevice.isRunningOnSimulator {
                     Task { @MainActor in
                         let idString = product.isYearly ? "yearly_subscription" : "monthly_subscription"
                         self.log(message: "🤖 Симулятор: Запуск нативного окна StoreKit для ID: \(idString)")
                         
-                        // Запрашиваем продукт напрямую у StoreKit 2 в обход Apphud!
-                        // Это гарантированно выведет белое окно покупки на симуляторе!
                         if let appProduct = try? await Product.products(for: [idString]).first {
                             do {
                                 let result = try await appProduct.purchase()
@@ -128,11 +134,16 @@ extension SubscriptionServiceImpl {
                                 case .success(let verification):
                                     if case .verified = verification {
                                         promise(.success(true))
+                                        // ВАЖНО: после успешной покупки обновляем поток статуса
+                                        _ = Task { @MainActor in
+                                            let isActive = await self.computeIsActiveFromTransactions()
+                                            self._isActive.value = isActive
+                                        }
                                     } else {
-                                        promise(.success(true)) // Для тестов на симуляторе
+                                        promise(.success(false))
                                     }
                                 case .userCancelled:
-                                    self.log(message: "⚠️ Пользователь отменил покупку в окне StoreKit")
+                                    self.log(message: "⚠️ Пользователь отменил покупку")
                                     promise(.success(false))
                                 case .pending:
                                     promise(.success(false))
@@ -143,27 +154,23 @@ extension SubscriptionServiceImpl {
                                 promise(.failure(error))
                             }
                         } else {
-                            // Фоллбек, если StoreKit-файл не подгрузился
                             promise(.success(true))
                         }
                     }
                     return
                 }
                 
-                // 2. БОЕВОЙ РЕЖИМ: Отрабатывает строго на реальном устройстве через Apphud Placements
                 if !self.isReady {
                     return promise(.failure(SubscriptionServiceError.sdkNotInitialized))
                 }
                 
                 Task { @MainActor in
-                    //Берем paywall
                     let placements = await Apphud.placements()
                     guard let paywall = placements.first(where: { $0.identifier == AppConfig.apphudPaywallId || $0.paywall?.identifier == AppConfig.apphudPaywallId })?.paywall
                     else {
                         promise(.failure(SubscriptionServiceError.paywallNotFound))
                         return
                     }
-                    //Берем product
                     guard let apphudProduct = self.searchApphudProduct(apphudProducts: paywall.products, by: product)
                     else {
                         promise(.success(false))
@@ -172,6 +179,13 @@ extension SubscriptionServiceImpl {
                     
                     let result = await Apphud.purchase(apphudProduct)
                     promise(.success(result.success))
+                    
+                    // ВАЖНО: после покупки через Apphud тоже обновляем статус
+                    if result.success {
+                        _ = Task { @MainActor in
+                            self._isActive.value = Apphud.hasActiveSubscription()
+                        }
+                    }
                 }
             }
         }
@@ -185,21 +199,15 @@ extension SubscriptionServiceImpl {
     func restorePurchases() -> AnyPublisher<Bool, Error> {
         Deferred {
             Future { promise in
-                // 1. РЕЖИМ СИМУЛЯТОРА: Честно проверяем локальный .storekit файл через нативный API Apple!
                 if UIDevice.isRunningOnSimulator {
                     Task { @MainActor in
                         do {
                             self.log(message: "🤖 Симулятор: Запрос нативного восстановления чеков в Apple StoreKit...")
-                            
-                            // Синхронизируем очередь транзакций локального StoreKit-файла
                             try await AppStore.sync()
                             
                             var hasActiveSubscription = false
-                            
-                            // Проверяем все текущие оформленные подписки в системе
                             for await status in Transaction.currentEntitlements {
                                 if case .verified(let transaction) = status {
-                                    // Если в кэше симулятора есть хоть одна наша подписка — это успех!
                                     if transaction.productID == "yearly_subscription" ||
                                         transaction.productID == "monthly_subscription" {
                                         hasActiveSubscription = true
@@ -208,6 +216,12 @@ extension SubscriptionServiceImpl {
                             }
                             
                             promise(.success(hasActiveSubscription))
+                            
+                            // ВАЖНО: после рестора тоже обновляем поток
+                            _ = Task { @MainActor in
+                                let isActive = await self.computeIsActiveFromTransactions()
+                                self._isActive.value = isActive
+                            }
                         } catch {
                             promise(.failure(error))
                         }
@@ -215,7 +229,6 @@ extension SubscriptionServiceImpl {
                     return
                 }
                 
-                // 2. БОЕВОЙ РЕЖИМ: На реальном устройстве через Apphud
                 if !self.isReady {
                     return promise(.failure(SubscriptionServiceError.sdkNotInitialized))
                 }
@@ -223,6 +236,13 @@ extension SubscriptionServiceImpl {
                     do {
                         let result = await Apphud.restorePurchases()
                         promise(.success(result?.success ?? false))
+                        
+                        // ВАЖНО: обновляем статус после рестора
+                        if result?.success == true {
+                            _ = Task { @MainActor in
+                                self._isActive.value = Apphud.hasActiveSubscription()
+                            }
+                        }
                     }
                 }
             }
@@ -262,6 +282,7 @@ extension SubscriptionServiceImpl {
     }
 }
 
+// MARK: - Apphud product methods (private)
 private extension SubscriptionServiceImpl {
     func mapApphudProduct(to apphudProd: ApphudProduct) -> SubscriptionProduct? {
         let productId = apphudProd.productId.lowercased()
@@ -274,21 +295,28 @@ private extension SubscriptionServiceImpl {
             let price = rawPrice ?? 7.99
             return .month(totalPrice: price)
         }
-
         return nil
     }
     
     func searchApphudProduct(apphudProducts:[ApphudProduct], by product: SubscriptionProduct) -> ApphudProduct? {
         if product.isYearly {
-            guard let apphudProduct = apphudProducts.first(where: { finded in
-                finded.productId.hasSuffix("yearly") || finded.productId.hasSuffix("1y") || finded.productId.contains("year")
-            }) else { return nil }
-            return apphudProduct
+            return apphudProducts.first { $0.productId.hasSuffix("yearly") || $0.productId.hasSuffix("1y") || $0.productId.contains("year") }
         } else {
-            guard let apphudProduct = apphudProducts.first(where: { finded in
-                finded.productId.hasSuffix("monthly") || finded.productId.hasSuffix("1m") || finded.productId.contains("month")
-            }) else { return nil }
-            return apphudProduct
+            return apphudProducts.first { $0.productId.hasSuffix("monthly") || $0.productId.hasSuffix("1m") || $0.productId.contains("month") }
         }
     }
+}
+
+// MARK: - For simulator transactions methods (private)
+private extension SubscriptionServiceImpl {
+    @MainActor
+    func computeIsActiveFromTransactions() async -> Bool {
+            for await status in Transaction.currentEntitlements {
+                if case .verified(let transaction) = status,
+                   ["yearly_subscription", "monthly_subscription"].contains(transaction.productID) {
+                    return true
+                }
+            }
+            return false
+        }
 }
