@@ -19,4 +19,7 @@ enum AppConfig {
     
     static let privacyURL = URL(string: "https://posthog.com/privacy")!
     static let termsURL = URL(string: "https://posthog.com/terms")!
+    
+    static let isPremiumCachedKey = "com.testtask.isPremiumActive.cache"
+
 }

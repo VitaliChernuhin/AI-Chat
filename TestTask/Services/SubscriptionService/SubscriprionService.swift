@@ -41,11 +41,13 @@ protocol SubscriptionService: AnyObject {
 final class SubscriptionServiceImpl: SubscriptionService, Logable {
     
     // MARK: - Private properties
+    private let preferences: AppPreferences
+    
     private lazy var mockProducts: [SubscriptionProduct] = {
         [.year(totalPrice: 69.99), .month(totalPrice: 7.99)]
     }()
     
-    private let _isActive = CurrentValueSubject<Bool, Never>(false)
+    private let _isActive: CurrentValueSubject<Bool, Never>
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Public properties
@@ -56,6 +58,14 @@ final class SubscriptionServiceImpl: SubscriptionService, Logable {
     
     var isActive: AnyPublisher<Bool, Never> {
         _isActive.eraseToAnyPublisher()
+    }
+    
+    // MARK: - Life cycle
+    init(preferences: AppPreferences) {
+        self.preferences = preferences
+        
+        let cachedStatus = preferences.isPremiumActive
+        self._isActive = CurrentValueSubject<Bool, Never>(cachedStatus)
     }
 }
 
@@ -137,7 +147,7 @@ extension SubscriptionServiceImpl {
                                         // ВАЖНО: после успешной покупки обновляем поток статуса
                                         _ = Task { @MainActor in
                                             let isActive = await self.computeIsActiveFromTransactions()
-                                            self._isActive.value = isActive
+                                            self.updatePremiumStatus(isActive)
                                         }
                                     } else {
                                         promise(.success(false))
@@ -183,7 +193,7 @@ extension SubscriptionServiceImpl {
                     // ВАЖНО: после покупки через Apphud тоже обновляем статус
                     if result.success {
                         _ = Task { @MainActor in
-                            self._isActive.value = Apphud.hasActiveSubscription()
+                            self.updatePremiumStatus(Apphud.hasActiveSubscription())
                         }
                     }
                 }
@@ -220,7 +230,7 @@ extension SubscriptionServiceImpl {
                             // ВАЖНО: после рестора тоже обновляем поток
                             _ = Task { @MainActor in
                                 let isActive = await self.computeIsActiveFromTransactions()
-                                self._isActive.value = isActive
+                                self.updatePremiumStatus(isActive)
                             }
                         } catch {
                             promise(.failure(error))
@@ -240,7 +250,7 @@ extension SubscriptionServiceImpl {
                         // ВАЖНО: обновляем статус после рестора
                         if result?.success == true {
                             _ = Task { @MainActor in
-                                self._isActive.value = Apphud.hasActiveSubscription()
+                                self.updatePremiumStatus(Apphud.hasActiveSubscription())
                             }
                         }
                     }
@@ -269,16 +279,29 @@ extension SubscriptionServiceImpl {
                                 }
                             }
                         }
+                        self.updatePremiumStatus(isActive)
                         promise(.success(isActive))
                     }
                     return
                 }
                 
                 let hasPremium = Apphud.hasActiveSubscription()
+                self.updatePremiumStatus(hasPremium)
                 promise(.success(hasPremium))
             }
         }
         .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Update premium status (private)
+private extension SubscriptionServiceImpl {
+    func updatePremiumStatus(_ isActive: Bool) {
+        self._isActive.value = isActive
+        
+        // Передаем значение в преференсы одной строчкой без хардкода ключей! ✨
+        self.preferences.isPremiumActive = isActive
+        self.log(message: "💾 Преференсы приложения синхронизированы. Премиум: \(isActive)")
     }
 }
 
@@ -320,3 +343,5 @@ private extension SubscriptionServiceImpl {
             return false
         }
 }
+
+

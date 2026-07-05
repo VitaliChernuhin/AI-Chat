@@ -92,6 +92,15 @@ final class FeatureCell: UICollectionViewCell {
         return button
     }()
     
+    private lazy var lockImageView: UIImageView = {
+        let image = AppIcons.MainPage.systemLock
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFill
+        imageView.tintColor = AppColors.premiumGold
+        imageView.isHidden = false
+        return imageView
+    }()
+    
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -107,9 +116,11 @@ final class FeatureCell: UICollectionViewCell {
         super.layoutSubviews()
         gradientLayer.frame = contentView.bounds
     }
-    
-    // MARK: - Configuration
-    func configure(with item: FeatureItem) {
+}
+
+// MARK: - Configurate cell
+extension FeatureCell {
+    func configure(with item: FeatureItem, isPremium: Bool = true) {
         titleLabel.text = item.title
         actionButton.isHidden = !item.hasActionButton
         
@@ -176,10 +187,32 @@ final class FeatureCell: UICollectionViewCell {
                 make.height.equalTo(18)
             }
         }
+        
+        lockImageView.isHidden = isPremium
     }
-    
-    // MARK: - Setup
-    private func setupCell() {
+}
+
+// MARK: - Set loccked state
+extension FeatureCell {
+    func setLockedState(isPremium: Bool, animated: Bool = true) {
+        let shouldHideLock = isPremium
+        
+        if animated {
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
+                self.lockImageView.alpha = shouldHideLock ? 0.0 : 1.0
+            } completion: { _ in
+                self.lockImageView.isHidden = shouldHideLock
+            }
+        } else {
+            self.lockImageView.alpha = shouldHideLock ? 0.0 : 1.0
+            self.lockImageView.isHidden = shouldHideLock
+        }
+    }
+}
+
+// MARK: - Setup cell (private)
+private extension FeatureCell {
+    func setupCell() {
         layer.cornerRadius = 24
         clipsToBounds = true
         
@@ -199,9 +232,13 @@ final class FeatureCell: UICollectionViewCell {
         contentView.addSubview(titleLabel)
         contentView.addSubview(subtitleView)
         contentView.addSubview(actionButton)
+        contentView.addSubview(lockImageView)
     }
-    
-    private func setupConstraints() {
+}
+
+// MARK: - Setup constraints (private)
+private extension FeatureCell {
+    func setupConstraints() {
         waveImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
@@ -235,6 +272,12 @@ final class FeatureCell: UICollectionViewCell {
             make.trailing.equalToSuperview().offset(-16)
             make.bottom.equalToSuperview().offset(-16)
             make.height.equalTo(32)
+        }
+        
+        lockImageView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.width.equalTo(20)
         }
     }
 }

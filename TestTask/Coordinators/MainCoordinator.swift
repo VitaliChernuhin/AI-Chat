@@ -18,6 +18,9 @@ enum MainRoute: Route {
     case dismiss
     case dismissAfterAlert(type: AppAlertView.AlertType, message: String)
     case paywall
+    case fixImproveText
+    case summarizeText
+    case generateVideo
     
     case openPrivacy
     case openTerms
@@ -138,35 +141,70 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
                 UIApplication.shared.open(AppConfig.termsURL, options: [:])
                 return .none()
             }
+        
+        case .fixImproveText:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureFixImproveTextScene(router: currentRouter)
+                return .push(viewController)
+            }
+            
+        case .summarizeText:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureSummarizeTextScene(router: currentRouter)
+                return .push(viewController)
+            }
+            
+        case .generateVideo:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureGenerateVideoScene(router: currentRouter)
+                return .push(viewController)
+            }
         }
     }
-    
-    // MARK: - Scene Configurations (private)
+}
+
+// MARK: - Scenes Configurations (private)
+private extension MainCoordinator {
     @MainActor
-    private static func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
+    static func configureMainPageScene(router: WeakRouter<MainRoute>) -> UIViewController {
         let viewModel = MainPageViewModel(router: router, subscriptionService: ServicesFactory.shared.service(type: SubscriptionService.self))
         return MainPageViewController(viewModel: viewModel)
     }
     
     @MainActor
-    private static func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        SettingsViewController(router: router)
+    static func configureSettingsScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        ComingSoonViewController(router: router, title: "Settings")
     }
     
     @MainActor
-    private static func configureAIChatScene(router: WeakRouter<MainRoute>) -> UIViewController {
+    static func configureAIChatScene(router: WeakRouter<MainRoute>) -> UIViewController {
         let chatNetworkService = ServicesFactory.shared.service(type: AIChatNetworkService.self)
         let viewModel = AIChatViewModel(router: router, chatNetworkService: chatNetworkService)
         return AIChatViewController(viewModel: viewModel)
     }
     
     @MainActor
-    private static func configureAppAlertScene(type: AppAlertView.AlertType, message: String) -> UIViewController {
+    static func configureFixImproveTextScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        ComingSoonViewController(router: router, title: "Fix and improve writing")
+    }
+    
+    @MainActor
+    static func configureSummarizeTextScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        ComingSoonViewController(router: router, title: "Summarize")
+    }
+    
+    @MainActor
+    static func configureGenerateVideoScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        ComingSoonViewController(router: router, title: "Turn Photo into Video")
+    }
+    
+    @MainActor
+    static func configureAppAlertScene(type: AppAlertView.AlertType, message: String) -> UIViewController {
         AppAlertViewController(type: type, message: message)
     }
     
     @MainActor
-    private static func configurePaywallScene(router: WeakRouter<MainRoute>) -> UIViewController {
+    static func configurePaywallScene(router: WeakRouter<MainRoute>) -> UIViewController {
         let viewModel = PaywallViewModel(router: router, subscriptionService: ServicesFactory.shared.service(type: SubscriptionService.self))
         return PaywallViewController(viewModel: viewModel)
     }

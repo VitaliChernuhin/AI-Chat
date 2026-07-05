@@ -49,7 +49,6 @@
 				Paywall/Views/PaywallBadgeGradientView.swift,
 				Paywall/Views/PaywallCancelAnytimeView.swift,
 				Paywall/Views/PaywallProductCell.swift,
-				Settings/SettingsViewController.swift,
 			);
 			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
 		};
@@ -58,6 +57,7 @@
 			membershipExceptions = (
 				Base/AppAlertViewController.swift,
 				Base/BaseViewController.swift,
+				Base/ComingSoonViewController.swift,
 				Base/Logable.swift,
 				Base/Protocols/NavigationBarOwner.swift,
 				Base/Protocols/Routable.swift,
@@ -98,6 +98,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AIChatNetworkService.swift,
+				AppPreferences.swift,
 				Network/AIChatModels.swift,
 				Network/ChatAPI.swift,
 				ServicesFactory.swift,

@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Combine
 
 final class MainPageViewController: UIViewController {
     
@@ -67,6 +68,7 @@ final class MainPageViewController: UIViewController {
     }()
     
     private let viewModel: MainPageViewModel
+    private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Init
     init(viewModel: MainPageViewModel) {
@@ -85,6 +87,7 @@ final class MainPageViewController: UIViewController {
         setupConstraints()
         setupActions()
         
+        bindViewModel()
         viewModel.handleViewEvent(.viewDidLoad)
     }
     
@@ -164,11 +167,31 @@ final class MainPageViewController: UIViewController {
     }
 }
 
+// MARK: - Bind viewModel (private)
+private extension MainPageViewController {
+    func bindViewModel() {
+        viewModel.$isPremiumActive
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isPremium in
+                guard let self = self else { return }
+                
+                print("📱 Главный экран поймал обновление премиума: \(isPremium)")
+                
+                // Находим только те ячейки, которые сейчас на экране
+                let visibleCells = self.collectionView.visibleCells.compactMap { $0 as? FeatureCell }
+                
+                for cell in visibleCells {
+                    cell.setLockedState(isPremium: isPremium, animated: false)
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+
+
 // MARK: - Composition layout
-extension MainPageViewController {
-    
-    // MARK: - Compositional Layout Magic 🌟
-    private func createCompositionalLayout() -> UICollectionViewLayout {
+private extension MainPageViewController {
+    func createCompositionalLayout() -> UICollectionViewLayout {
         return UICollectionViewCompositionalLayout { _, _ in
             
             let bentoGridHeight: CGFloat = UIDevice.isSmallScreen ? 255 : 335
@@ -223,7 +246,7 @@ extension MainPageViewController: UICollectionViewDataSource, UICollectionViewDe
             return UICollectionViewCell()
         }
         let feature = viewModel.features[indexPath.item]
-        cell.configure(with: feature)
+        cell.configure(with: feature, isPremium: viewModel.isPremiumActive)
         return cell
     }
     

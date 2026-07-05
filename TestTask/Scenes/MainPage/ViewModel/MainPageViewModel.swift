@@ -27,7 +27,10 @@ final class MainPageViewModel: ViewEventHandlable, ViewActionHandlable, Logable 
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Init
-    init(router: WeakRouter<MainRoute>, subscriptionService: SubscriptionService) {
+    init(
+        router: WeakRouter<MainRoute>,
+        subscriptionService: SubscriptionService
+    ) {
         self.router = router
         self.subscriptionService = subscriptionService
     }
@@ -39,6 +42,7 @@ extension MainPageViewModel {
         switch event {
         case .viewDidLoad:
             bindSubscriptionStatus()
+            checkSubscription()
         }
     }
 }
@@ -53,17 +57,31 @@ extension MainPageViewModel {
             
         case .featureTapped(let type):
             if !isPremiumActive {
-                self.log(message: "🔒 Фича \(type) заблокирована. Открываем Premium Paywall...")
+                self.log(
+                    message: "🔒 Фича \(type) заблокирована. Открываем Premium Paywall..."
+                )
                 router.trigger(.paywall)
             } else {
-                self.log(message: "🔓 Премиум активен! Запускаем боевой экран для \(type)")
+                self.log(
+                    message: "🔓 Премиум активен! Запускаем боевой экран для \(type)"
+                )
                 switch type {
                 case .turnPhotoToVideo:
-                    print("🚀 Переход на боевой экран: Анимация Фото -> Видео")
+                    router.trigger(.generateVideo)
+                    log(
+                        message: "🚀 Переход на боевой экран: Анимация Фото -> Видео"
+                    )
                 case .fixWriting:
-                    print("🚀 Переход на боевой экран: Улучшение текста и грамматики")
+                    router.trigger(.fixImproveText)
+                    log(
+                        message: "🚀 Переход на боевой экран: Улучшение текста и грамматики"
+                    )
                 case .summarize:
-                    router.trigger(.aiChat)
+                    router.trigger(.summarizeText)
+                    log(
+                        message: "🚀 Переход на боевой экран: Улучшение текста и грамматики"
+                    )
+                    print("🚀 Переход на боевой экран: Суммаризация")
                 }
             }
             
@@ -75,14 +93,28 @@ extension MainPageViewModel {
 
 // MARK: - Private methods
 private extension MainPageViewModel {
-    func bindSubscriptionStatus() {
+    func checkSubscription() {
         subscriptionService.checkActiveSubscription()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isPremiumActive in
+                self?.log(
+                    message: "⏳ Проверяем подписку: проверка локального чека вернула: \(isPremiumActive)"
+                )
+            }
+            .store(in: &cancellables)
+    }
+
+    
+    func bindSubscriptionStatus() {
+        subscriptionService.isActive
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPremiumActive in
                 guard let self = self else { return }
                 
                 self.isPremiumActive = isPremiumActive
-                self.log(message: "📱 Стейт подписки на главном экране обновлен: \(isPremiumActive)")
+                self.log(
+                    message: "📱 Стейт подписки на главном экране обновлен: \(isPremiumActive)"
+                )
             }
             .store(in: &cancellables)
     }

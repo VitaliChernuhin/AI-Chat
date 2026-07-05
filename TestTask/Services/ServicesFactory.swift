@@ -38,8 +38,12 @@ final class ServicesFactory: @unchecked Sendable {
             AIChatNetworkServiceImpl()
         }.inObjectScope(.transient)
         
-        container.register(SubscriptionService.self) { _ in
-            SubscriptionServiceImpl()
+        container.register(AppPreferences.self) { _ in
+            AppPreferencesImpl()
+        }.inObjectScope(.transient)
+        
+        container.register(SubscriptionService.self) { resolver in
+            SubscriptionServiceImpl(preferences: resolver.resolve(AppPreferences.self)!)
         }.inObjectScope(.container)
     }
 }

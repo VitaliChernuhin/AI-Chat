@@ -25,6 +25,7 @@ enum AppColors {
     static let settingsIcon = UIColor.white
     static let placeholderText = UIColor(red: 89/255, green: 86/255, blue: 91/255, alpha: 1.0)
     static let askAnyBackground = UIColor(red: 26/255, green: 21/255, blue: 32/255, alpha: 1.0)
+    static let premiumGold = UIColor(red: 255/255, green: 204/255, blue: 0/255, alpha: 0.9)
     
     // MARK: - Chat Input Bar
     static let chatAskAnythingBackground = UIColor(red: 30/255, green: 25/255, blue: 31/255, alpha: 1.0)

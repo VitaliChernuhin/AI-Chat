@@ -1,5 +1,5 @@
 //
-//  SettingsViewController.swift
+//  ComingSoonViewController.swift
 //  TestTask
 //
 //  Created by Vit Chernuhin on 21.06.2026.
@@ -9,26 +9,29 @@ import UIKit
 import SnapKit
 import XCoordinator
 
-final class SettingsViewController: BaseViewController, Routable, NavigationBarOwner{
+final class ComingSoonViewController: BaseViewController, Routable, NavigationBarOwner {
     
     internal let router: WeakRouter<MainRoute>
     
+    private var navTitle: String?
+    
     // MARK: - UI Components
-    private let comingSoonLabel: UILabel = {
+    private lazy var comingSoonLabel: UILabel = {
         let label = UILabel()
-        label.text = "Settings\ncoming soon..."
+        label.text = "\(navTitle ?? "Feature")\ncoming soon..."
         label.textColor = AppColors.accent
         label.font = FontFamily.Inter.bold(size: 32)
         label.textAlignment = .center
-        label.numberOfLines = 2
+        label.numberOfLines = 3
         return label
     }()
     
     // MARK: Life cycle
-    init(router: WeakRouter<MainRoute>) {
+    init(router: WeakRouter<MainRoute>, title: String) {
         self.router = router
+        self.navTitle = title
         super.init(
-            title: "Settings",
+            title: title,
             subtitle: nil,
             avatarImage: nil,
             rightImage: nil
