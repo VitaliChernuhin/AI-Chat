@@ -14,6 +14,7 @@ enum MainRoute: Route {
     case settings
     case back
     case aiChat
+    case aiChatsHistory
     case alert(type: AppAlertView.AlertType, message: String)
     case dismiss
     case dismissAfterAlert(type: AppAlertView.AlertType, message: String)
@@ -61,9 +62,14 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             return .pop()
             
         case .aiChat:
-            
             return MainActor.assumeIsolated {
                 let viewController = Self.configureAIChatScene(router: currentRouter)
+                return .push(viewController)
+            }
+            
+        case .aiChatsHistory:
+            return MainActor.assumeIsolated {
+                let viewController = Self.configureAIChatsScene(router: currentRouter)
                 return .push(viewController)
             }
             
@@ -181,6 +187,12 @@ private extension MainCoordinator {
         let chatNetworkService = ServicesFactory.shared.service(type: AIChatNetworkService.self)
         let viewModel = AIChatViewModel(router: router, chatNetworkService: chatNetworkService)
         return AIChatViewController(viewModel: viewModel)
+    }
+    
+    @MainActor
+    static func configureAIChatsScene(router: WeakRouter<MainRoute>) -> UIViewController {
+        let viewModel = AIChatsHistoryViewModel(router: router)
+        return AIChatsHistoryViewController(viewModel: viewModel)
     }
     
     @MainActor

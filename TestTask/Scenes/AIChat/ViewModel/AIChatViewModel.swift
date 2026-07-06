@@ -39,8 +39,7 @@ extension AIChatViewModel: ViewActionHandlable {
             executeMessageSending(text)
             
         case .historyTapped:
-            // В будущем: router.trigger(.history)
-            print("Бизнес-логика: переход на экран Истории")
+            router.trigger(.aiChatsHistory)
             
         case .backTapped:
             router.trigger(.back)
