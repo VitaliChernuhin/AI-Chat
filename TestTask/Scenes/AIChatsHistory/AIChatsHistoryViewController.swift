@@ -26,6 +26,9 @@ final class AIChatsHistoryViewController: BaseViewController {
     }()
     
     // MARK: - Properties
+    private var sectionKeys: [String] = []
+    private var chatSections: [String: [ChatHistoryItem]] = [:]
+    
     private let viewModel: AIChatsHistoryViewModel
     private var cancellables = Set<AnyCancellable>()
     
@@ -59,6 +62,16 @@ private extension AIChatsHistoryViewController {
         
         view.addSubview(placeholderView)
         view.addSubview(historyCollectionView)
+        
+        historyCollectionView.register(ChatHistoryCell.self, forCellWithReuseIdentifier: ChatHistoryCell.reuseIdentifier)
+        historyCollectionView.register(
+            ChatHistorySectionHeader.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: ChatHistorySectionHeader.reuseIdentifier
+        )
+        
+        historyCollectionView.dataSource = self
+        historyCollectionView.delegate = self
     }
 }
 
@@ -72,7 +85,7 @@ private extension AIChatsHistoryViewController {
         }
         
         historyCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(navigationBar.snp.bottom).offset(16)
+            make.top.equalTo(navigationBar.snp.bottom).offset(24)
             make.leading.trailing.bottom.equalToSuperview()
         }
     }
@@ -90,14 +103,29 @@ private extension AIChatsHistoryViewController {
 // MARK: - Bind ViewModel (private)
 private extension AIChatsHistoryViewController {
     func bindViewModel() {
-        // Слушаем стейт пустоты экрана от вью-модели
+        
         viewModel.$isEmpty
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isHistoryEmpty in
                 guard let self = self else { return }
-                // Управляем видимостью слоев на экране
                 self.placeholderView.isHidden = !isHistoryEmpty
                 self.historyCollectionView.isHidden = isHistoryEmpty
+            }
+            .store(in: &cancellables)
+            
+        viewModel.$chatSections
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] sections in
+                guard let self = self else { return }
+                self.chatSections = sections
+                self.sectionKeys = sections.keys.sorted { k1, k2 in
+                    if k1 == "Today" { return true }
+                    if k2 == "Today" { return false }
+                    if k1 == "Yesterday" { return true }
+                    if k2 == "Yesterday" { return false }
+                    return k1 > k2
+                }
+                self.historyCollectionView.reloadData()
             }
             .store(in: &cancellables)
     }
@@ -106,7 +134,95 @@ private extension AIChatsHistoryViewController {
 // MARK: - Compositional Layout (private)
 private extension AIChatsHistoryViewController {
     func createCompositionalLayout() -> UICollectionViewLayout {
-        // Лэйаут секций и карточек соберем чуть позже на основе ячейки
-        return UICollectionViewFlowLayout()
+        
+        // 1. Одиночная ячейка карточки диалога
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .fractionalHeight(1.0)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        // Делаем зазор 12pt строго СНИЗУ каждой карточки, чтобы они не слипались
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 12, trailing: 0)
+        
+        // 2. Вертикальная группа (Чистая высота карточки 72pt из Figma + зазор 12pt = 84pt)
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(84)
+        )
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        
+        // 3. Секция
+        let section = NSCollectionLayoutSection(group: group)
+        
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16)
+        
+        // 4. Настраиваем размеры и тип хедера секции
+        let headerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .estimated(32) // Высота хедера сама подстроится под шрифт Inter SemiBold 20
+        )
+        let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+        section.boundarySupplementaryItems = [sectionHeader]
+        
+        return UICollectionViewCompositionalLayout(section: section)
     }
 }
+
+// MARK: - UICollectionViewDataSource & UICollectionViewDelegate
+extension AIChatsHistoryViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return sectionKeys.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let key = sectionKeys[section]
+        return chatSections[key]?.count ?? 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: ChatHistoryCell.reuseIdentifier,
+            for: indexPath
+        ) as? ChatHistoryCell else {
+            return UICollectionViewCell()
+        }
+        
+        let key = sectionKeys[indexPath.section]
+        if let item = chatSections[key]?[indexPath.item] {
+            cell.configure(text: item.text, time: item.time)
+        }
+        return cell
+    }
+    
+    // Отрисовка наших кастомных заголовков дат (Today, Yesterday)
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionHeader,
+              let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: ChatHistorySectionHeader.reuseIdentifier,
+                for: indexPath
+              ) as? ChatHistorySectionHeader else {
+            return UICollectionReusableView()
+        }
+        
+        let key = sectionKeys[indexPath.section]
+        header.configure(title: key)
+        return header
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let key = sectionKeys[indexPath.section]
+        if let item = chatSections[key]?[indexPath.item] {
+            // Передаем экшен выбора чата во вью-модель!
+            viewModel.handleAction(.chatSelected(id: item.id))
+        }
+    }
+}
+
+

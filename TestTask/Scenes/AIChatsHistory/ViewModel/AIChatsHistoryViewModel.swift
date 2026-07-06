@@ -11,13 +11,6 @@ import XCoordinator
 
 final class AIChatsHistoryViewModel: Logable {
     
-    // Временная структура для верстки ячейки истории диалога
-    struct ChatHistoryItem {
-        let id: String
-        let text: String
-        let time: String
-    }
-    
     // MARK: - Outputs (Данные для подписки)
     @Published private(set) var chatSections: [String: [ChatHistoryItem]] = [:]
     @Published private(set) var isEmpty: Bool = true
@@ -56,16 +49,25 @@ extension AIChatsHistoryViewModel: ViewActionHandlable {
     }
 }
 
-// MARK: - Private Core Logic
+// MARK: - Private methods
 private extension AIChatsHistoryViewModel {
     func loadHistoryFromBackend() {
-        // Здесь будет твой вчерашний идеальный запрос к FastAPI:
-        // 1. Включаем лоадер или проверяем кэш
-        // 2. Стягиваем список чатов Dola
-        // 3. Если массив пустой -> isEmpty = true
-        // 4. Если чаты есть -> парсим, группируем по датам (Today, Yesterday) и гасим isEmpty = false
+        // Моки для верстки
+        self.chatSections = [
+            "Today": [
+                ChatHistoryItem(id: "1", text: "Create a design system for a mobile app in Figma", time: "14:32"),
+                ChatHistoryItem(id: "2", text: "Explain quantum computing in simple words for a kid", time: "10:15")
+            ],
+            "Yesterday": [
+                ChatHistoryItem(id: "3", text: "Write a high-performance HTTP server in Python using FastAPI", time: "Yesterday")
+            ],
+            "March 4": [
+                ChatHistoryItem(id: "4", text: "How to fix jumpy UICollectionView layouts on iOS 15?", time: "04.03.2026")
+            ]
+        ]
         
-        // Временная заглушка для теста плейсхолдера:
-        self.isEmpty = true
+        // РЕШЕНИЕ: Гасим пустой стейт, чтобы на экране включилась коллекция контента!
+        self.isEmpty = false
     }
 }
+

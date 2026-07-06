@@ -51,6 +51,8 @@ enum AppColors {
 
     // MARK: - Chats History Scene
     static let chatsHistorySubtitleText = UIColor(red: 137/255, green: 135/255, blue: 138/255, alpha: 1.0)
+    
+    static let chatHistoryCellBackground = UIColor(hex:"#1F191F").withAlphaComponent(0.40)
 
 
 }

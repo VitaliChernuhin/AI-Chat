@@ -66,5 +66,6 @@ enum AppIcons {
     // MARK: - Chats history
     enum ChatsHistory {
         static let placeholder = UIImage(named: "ic_chats_history_placeholder")
+        static let historyItem = UIImage(named: "ic_chats_history_item")
     }
 }
