@@ -38,6 +38,7 @@
 				AIChatsHistory/AIChatsHistoryViewController.swift,
 				AIChatsHistory/Model/AIChatsHistoryAction.swift,
 				AIChatsHistory/ViewModel/AIChatsHistoryViewModel.swift,
+				AIChatsHistory/Views/ChatsHistoryPlaceholderView.swift,
 				MainPage/MainPageViewController.swift,
 				MainPage/Model/FeatureItem.swift,
 				MainPage/Model/FeatureType.swift,

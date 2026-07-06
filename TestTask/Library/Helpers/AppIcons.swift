@@ -41,6 +41,7 @@ enum AppIcons {
         static let history = UIImage(named: "ic_history")
     }
     
+    // MARK: - Alert
     enum Alert {
         
         static let successCheck = UIImage(named: "ic_success_check")
@@ -52,6 +53,7 @@ enum AppIcons {
         }()
     }
     
+    // MARK: - Paywall
     enum Paywall {
         static let close = UIImage(named: "ic_close")
         static let resultInSeconds = UIImage(named: "ic_result_in_seconds")
@@ -59,5 +61,10 @@ enum AppIcons {
         static let simplifyComplexInformation = UIImage(named: "ic_simplify_complex_information")
         static let createWithAITemplate = UIImage(named: "ic_create_with_AI_templates")
         static let cancelAnyTime = UIImage(named: "ic_cancel_anyTime")
+    }
+    
+    // MARK: - Chats history
+    enum ChatsHistory {
+        static let placeholder = UIImage(named: "ic_chats_history_placeholder")
     }
 }

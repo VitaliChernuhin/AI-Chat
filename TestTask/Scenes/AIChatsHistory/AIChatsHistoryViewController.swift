@@ -11,12 +11,11 @@ import Combine
 
 final class AIChatsHistoryViewController: BaseViewController {
     
-    private let placeholderContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.isHidden = false // По умолчанию виден со старта
-        return view
-    }()
+    // MARK: - UI Components
+    private let placeholderView = ChatsHistoryPlaceholderView(
+            title: "No chats yet",
+            subtitle: "Start a conversation to see\n your history here"
+    )
     
     // Сетка коллекции для вывода карточек истории по секциям
     private lazy var historyCollectionView: UICollectionView = {
@@ -48,8 +47,7 @@ final class AIChatsHistoryViewController: BaseViewController {
         setupActions()
         
         bindViewModel()
-        
-        // Сигнализируем вью-модели о загрузке экрана
+ 
         viewModel.handleViewEvent(.viewDidLoad)
     }
 }
@@ -57,16 +55,10 @@ final class AIChatsHistoryViewController: BaseViewController {
 // MARK: - Setup views (private)
 private extension AIChatsHistoryViewController {
     func setupViews() {
-        view.backgroundColor = AppColors.background // Глубокий темный фон
-        view.addSubview(navigationBar)
-        view.addSubview(placeholderContainerView)
-        view.addSubview(historyCollectionView)
+        view.backgroundColor = AppColors.background
         
-        setupPlaceholderContent()
-    }
-    
-    func setupPlaceholderContent() {
-        // Сюда мы на следующем шаге закинем иконку карандаша с искорками и тексты
+        view.addSubview(placeholderView)
+        view.addSubview(historyCollectionView)
     }
 }
 
@@ -74,9 +66,9 @@ private extension AIChatsHistoryViewController {
 private extension AIChatsHistoryViewController {
     func setupConstraints() {
       
-        placeholderContainerView.snp.makeConstraints { make in
+        placeholderView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(40)
+            make.leading.trailing.equalToSuperview().inset(23)
         }
         
         historyCollectionView.snp.makeConstraints { make in
@@ -104,7 +96,7 @@ private extension AIChatsHistoryViewController {
             .sink { [weak self] isHistoryEmpty in
                 guard let self = self else { return }
                 // Управляем видимостью слоев на экране
-                self.placeholderContainerView.isHidden = !isHistoryEmpty
+                self.placeholderView.isHidden = !isHistoryEmpty
                 self.historyCollectionView.isHidden = isHistoryEmpty
             }
             .store(in: &cancellables)

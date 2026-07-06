@@ -49,6 +49,8 @@ enum AppColors {
     
     static let paywallPriceText = UIColor(red: 96/255, green: 96/255, blue: 96/255, alpha: 1.0)
 
+    // MARK: - Chats History Scene
+    static let chatsHistorySubtitleText = UIColor(red: 137/255, green: 135/255, blue: 138/255, alpha: 1.0)
 
 
 }
