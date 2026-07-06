@@ -191,7 +191,7 @@ private extension MainCoordinator {
     
     @MainActor
     static func configureAIChatsScene(router: WeakRouter<MainRoute>) -> UIViewController {
-        let viewModel = AIChatsHistoryViewModel(router: router)
+        let viewModel = AIChatsHistoryViewModel(router: router, chatNetworkService: ServicesFactory.shared.service(type: AIChatNetworkService.self))
         return AIChatsHistoryViewController(viewModel: viewModel)
     }
     

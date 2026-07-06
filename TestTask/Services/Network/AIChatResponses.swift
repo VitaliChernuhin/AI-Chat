@@ -23,10 +23,10 @@ struct AIChatResponse: Decodable {
 // MARK: - AIChatHistoryResponse
 struct AIChatHistoryResponse: Codable {
     let chatId: String
-    let title: String
-    let personaId: Int
-    let updatedAt: String // Или Date, если у тебя настроен кастомный декодер дат
-    let lastMessagePreview: String
+    let title: String?
+    let personaId: Int?
+    let updatedAt: String?
+    let lastMessagePreview: String?
     
     enum CodingKeys: String, CodingKey {
         case chatId = "chat_id"
@@ -36,3 +36,4 @@ struct AIChatHistoryResponse: Codable {
         case lastMessagePreview = "last_message_preview"
     }
 }
+
