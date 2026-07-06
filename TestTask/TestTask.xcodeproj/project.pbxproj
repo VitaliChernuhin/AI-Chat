@@ -107,7 +107,11 @@
 			membershipExceptions = (
 				AIChatNetworkService.swift,
 				AppPreferences.swift,
+				Network/AIChatError.swift,
 				Network/AIChatModels.swift,
+				Network/AIChatRequests.swift,
+				Network/AIChatResponses.swift,
+				Network/AIValidationErrorResponse.swift,
 				Network/ChatAPI.swift,
 				ServicesFactory.swift,
 				SubscriptionService/SubscriprionService.swift,

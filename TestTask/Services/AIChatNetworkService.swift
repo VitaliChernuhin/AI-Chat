@@ -12,33 +12,64 @@ import CombineMoya
 
 // MARK: - Protocol
 protocol AIChatNetworkService {
+    
     /// Отправляет текстовый запрос к ИИ в конкретный чат
     /// - Parameters:
     ///   - chatId: Идентификатор чата в Dola (Path-параметр)
     ///   - userId: ID пользователя (Query-параметр с валидацией регулярки)
+    ///   - appId: ID приложения (Query-параметр)
     ///   - text: Текст сообщения от пользователя (Body-параметр "message")
     ///   - locale: Язык ответа (Query-параметр, опциональный)
-    func sendPrompt(chatId: String, userId: String, text: String, locale: String?) -> AnyPublisher<AIChatResponse, Error>
+    ///   - acceptLanguage: Язык локализации для заголовка (Header-параметр, опциональный)
+    func sendPrompt(
+        chatId: String,
+        userId: String,
+        appId: String,
+        text: String,
+        locale: String?,
+        acceptLanguage: String?
+    ) -> AnyPublisher<AIChatResponse, Error>
+    
+    /// Получение всех доступных чатов пользователя
+    /// - Parameters:
+    ///   - userId: ID пользователя (Query-параметр с валидацией регулярки)
+    ///   - appId: ID приложения (Query-параметр)
+    ///   - chatsLimitCount: Максимальное количество чатов (limit)
+    ///   - chatsPaginationOffset: Смещение для пагинации (offset)
+    func chatsList(
+        userId: String,
+        appId: String,
+        chatsLimitCount: Int?,
+        chatsPaginationOffset: Int?
+    ) -> AnyPublisher<[AIChatHistoryResponse], Error>
 }
+
 
 // MARK: - Implementation
 final class AIChatNetworkServiceImpl: AIChatNetworkService {
     
     private let provider = MoyaProvider<ChatAPI>()
+    private let decoder = JSONDecoder()
     
     init() {}
     
-    func sendPrompt(chatId: String, userId: String, text: String, locale: String? = nil) -> AnyPublisher<AIChatResponse, Error> {
-        let appId = AppConfig.testApplicationId
-        let systemLanguage = Locale.current.language.languageCode?.identifier
+    /// Отправляет текстовый запрос к ИИ в конкретный чат
+    func sendPrompt(
+        chatId: String,
+        userId: String,
+        appId: String,
+        text: String,
+        locale: String?,
+        acceptLanguage: String?
+    ) -> AnyPublisher<AIChatResponse, Error> {
+        
+        let systemLanguage = acceptLanguage ?? Locale.current.language.languageCode?.identifier
         
         let requestBody = AIChatRequest(
             message: text,
             personaId: nil,
             additionalPrompt: nil
         )
-        
-        let decoder = JSONDecoder()
         
         return provider.requestPublisher(
             .sendMessage(
@@ -50,48 +81,93 @@ final class AIChatNetworkServiceImpl: AIChatNetworkService {
                 request: requestBody
             )
         )
-        .tryMap { response -> Data in
-            switch response.statusCode {
-            case 200...299:
-                return response.data
-                
-            case 404:
-                throw AIChatError.chatNotFound
-                
-            case 422:
-                if let errorResponse = try? decoder.decode(ValidationErrorResponse.self, from: response.data),
-                   let firstDetail = errorResponse.detail.first {
-                    throw AIChatError.validation(firstDetail.msg)
-                }
-                throw AIChatError.validation("Validation Error")
-                
-            case 500...599:
-                throw AIChatError.serverError
-                
-            default:
-                throw AIChatError.unknown("HTTP Code: \(response.statusCode)")
-            }
+        
+        .tryMap { [weak self] response -> Data in
+            guard let self = self else { throw AIChatError.unknown("Deallocated context") }
+            return try self.handleResponseData(response)
         }
         .decode(type: AIChatResponse.self, decoder: decoder)
-        .mapError { error -> Error in
-            if let chatError = error as? AIChatError { return chatError }
-            if let moyaError = error as? MoyaError,
-               case let .underlying(underlyingError, _) = moyaError,
-               let urlError = underlyingError as? URLError {
-                
-                switch urlError.code {
-                case .notConnectedToInternet, .networkConnectionLost:
-                    return AIChatError.noInternet // Реально нет связи
-                    
-                case .timedOut:
-                    return AIChatError.serverError // Сервер слишком долго думал (таймаут)
-                    
-                default:
-                    return AIChatError.unknown("Системный сбой: \(urlError.localizedDescription)")
-                }
-            }
-            return AIChatError.unknown(error.localizedDescription)
+        .mapError { [weak self] error -> Error in
+            return self?.mapNetworkError(error) ?? AIChatError.unknown(error.localizedDescription)
         }
         .eraseToAnyPublisher()
+    }
+    
+    /// Получение всех доступных чатов пользователя с поддержкой пагинации
+    func chatsList(
+        userId: String,
+        appId: String,
+        chatsLimitCount: Int?,
+        chatsPaginationOffset: Int?
+    ) -> AnyPublisher<[AIChatHistoryResponse], Error> {
+        
+        return provider.requestPublisher(
+            .chatsList(
+                userId: userId,
+                appId: appId,
+                limitChatsCount: chatsLimitCount,
+                chatsPaginationOffset: chatsPaginationOffset
+            )
+        )
+        .tryMap { [weak self] response -> Data in
+            guard let self = self else { throw AIChatError.unknown("Deallocated context") }
+            return try self.handleResponseData(response)
+        }
+        .decode(type: [AIChatHistoryResponse].self, decoder: decoder) // Декодируем массив плашек истории
+        .mapError { [weak self] error -> Error in
+            return self?.mapNetworkError(error) ?? AIChatError.unknown(error.localizedDescription)
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Private Network Handlers (Переиспользуемая магия декомпозиции)
+private extension AIChatNetworkServiceImpl {
+    
+    /// Централизованный разбор HTTP-статус кодов для FastAPI
+    func handleResponseData(_ response: Response) throws -> Data {
+        switch response.statusCode {
+        case 200...299:
+            return response.data
+            
+        case 404:
+            throw AIChatError.chatNotFound
+            
+        case 422:
+            if let errorResponse = try? decoder.decode(AIValidationErrorResponse.self, from: response.data),
+               let firstDetail = errorResponse.detail.first {
+                throw AIChatError.validation(firstDetail.msg)
+            }
+            throw AIChatError.validation("Validation Error")
+            
+        case 500...599:
+            throw AIChatError.serverError
+            
+        default:
+            throw AIChatError.unknown("HTTP Error Code: \(response.statusCode)")
+        }
+    }
+    
+    
+    /// Централизованный маппинг ошибок Alamofire/Moya в доменные ошибки приложения
+    func mapNetworkError(_ error: Error) -> Error {
+        if let chatError = error as? AIChatError { return chatError }
+        
+        if let moyaError = error as? MoyaError,
+           case let .underlying(underlyingError, _) = moyaError,
+           let urlError = underlyingError as? URLError {
+            
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                return AIChatError.noInternet
+                
+            case .timedOut:
+                return AIChatError.serverError
+                
+            default:
+                return AIChatError.unknown("Системный сбой: \(urlError.localizedDescription)")
+            }
+        }
+        return AIChatError.unknown(error.localizedDescription)
     }
 }

@@ -71,12 +71,11 @@ private extension AIChatViewModel {
         let appId = AppConfig.testApplicationId
         let targetChatId = "\(userId)_\(appId)".deterministicUUIDString
 
-        chatNetworkService.sendPrompt(
-            chatId: targetChatId,
-            userId: userId,
-            text: trimmedText,
-            locale: nil
-        )
+        chatNetworkService.sendPrompt(chatId: targetChatId,
+                                      userId: userId,
+                                      appId: appId,
+                                      text: trimmedText,
+                                      locale: nil, acceptLanguage: nil)
         .receive(on: DispatchQueue.main)
         .sink { [weak self] completion in
             guard let self = self else { return }

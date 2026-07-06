@@ -20,6 +20,14 @@ enum ChatAPI {
         acceptLanguage: String?,
         request: AIChatRequest
     )
+    
+    /// Получение списка чатов
+    case chatsList(
+        userId: String,
+        appId: String,
+        limitChatsCount: Int?,
+        chatsPaginationOffset: Int?
+    )
 }
 
 extension ChatAPI: TargetType {
@@ -33,6 +41,8 @@ extension ChatAPI: TargetType {
         switch self {
         case .sendMessage(let chatId,_,_,_,_,_):
             return "/dola/chats/\(chatId)/messages"
+        case .chatsList:
+            return "/dola/chats"
         }
     }
     
@@ -40,6 +50,8 @@ extension ChatAPI: TargetType {
         switch self {
         case .sendMessage:
             return .post
+        case .chatsList:
+            return .get
         }
     }
     
@@ -66,20 +78,42 @@ extension ChatAPI: TargetType {
                 bodyEncoding: JSONEncoding.default,
                 urlParameters: urlParameters
             )
+        case .chatsList(let userId, let appId, let limit, let offset):
+            
+            var urlParameters: [String: Any] = [
+                "user_id": userId,
+                "app_id": appId
+            ]
+            
+            if let limit = limit {
+                urlParameters["limit"] = limit
+            }
+            
+            if let offset = offset {
+                urlParameters["offset"] = offset
+            }
+            
+            return .requestParameters(parameters: urlParameters, encoding: URLEncoding.queryString)
         }
     }
     
-    var headers: [String : String]? {
+    var headers: [String: String]? {
+        var currentHeaders = [
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": "Bearer \(AppConfig.testBearerToken)"
+        ]
+        
         switch self {
         case .sendMessage(_, _, _, _, let acceptLanguage, _):
-            var headers = [
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer \(AppConfig.testBearerToken)"
-            ]
-            headers["Accept-Language"] = acceptLanguage ?? "en"
-            return headers
+            // Для отправки сообщения дописываем локализацию
+            currentHeaders["Accept-Language"] = acceptLanguage ?? "en"
+            
+        case .chatsList:
+            break
         }
+        
+        return currentHeaders
     }
     
     var sampleData: Data {
