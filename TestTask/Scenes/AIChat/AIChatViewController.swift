@@ -74,18 +74,21 @@ final class AIChatViewController: BaseViewController {
             make.bottom.equalTo(inputBarView.snp.top)
         }
     }
-    
-    private func setupActions() {
+}
+
+// MARK: - Setup actions (private)
+private extension AIChatViewController {
+    func setupActions() {
         inputBarView.onStateChanged = { [weak self] inputState in
             guard let self = self else { return }
             
             switch inputState {
             case .normal, .editingEmpty:
                 // Текст пустой или клавиатуру свернули -> передаем во ViewModel
-                self.viewModel.changeInputState(hasText: false)
+                self.viewModel.handleAction(.inputStateChanged(hasText: false))
             case .editingWithText:
                 // Появилась хотя бы одна буква -> передаем во ViewModel
-                self.viewModel.changeInputState(hasText: true)
+                self.viewModel.handleAction(.inputStateChanged(hasText: true))
             }
         }
         
@@ -95,11 +98,15 @@ final class AIChatViewController: BaseViewController {
         
         inputBarView.onSendTapped = { [weak self] text in
             self?.inputBarView.clearInput()
-            self?.viewModel.sendMessage(text)
+            self?.viewModel.handleAction(.sendTapped(text: text))
         }
         
         navigationBar.onBackTapped = { [weak self] in
-            self?.viewModel.back()
+            self?.viewModel.handleAction(.backTapped)
+        }
+        
+        navigationBar.onRightTapped = { [weak self] in
+            self?.viewModel.handleAction(.historyTapped)
         }
     }
 }
