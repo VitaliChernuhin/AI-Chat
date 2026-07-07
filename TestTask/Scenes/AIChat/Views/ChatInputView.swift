@@ -8,6 +8,19 @@
 import UIKit
 import SnapKit
 
+extension ChatInputView {
+    enum State {
+        /// Клавиатура скрыта, текст пустой [Стрелка + Micro]
+        case normal
+        /// Клавиатура поднята, текст пустой [Только Стрелка]
+        case editingEmpty
+        /// Клавиатура поднята, текст введен [Только Самолётик]
+        case editingWithText
+        /// Панель полностью заблокирована (идет загрузка истории)
+        case disabled
+    }
+}
+
 final class ChatInputView: UIView {
     
     // MARK: - Constants
@@ -18,15 +31,6 @@ final class ChatInputView: UIView {
         static let minTextViewHeight: CGFloat = 40.0
     }
     
-    // MARK: - States
-    enum State {
-        /// Клавиатура скрыта, текст пустой [Стрелка + Micro]
-        case normal
-        /// Клавиатура поднята, текст пустой [Только Стрелка]
-        case editingEmpty
-        /// Клавиатура поднята, текст введен [Только Самолётик]
-        case editingWithText
-    }
     
     var onSendTapped: ((String) -> Void)?
     var onArrowTapped: (() -> Void)?
@@ -125,9 +129,11 @@ final class ChatInputView: UIView {
         sendButtonGradientLayer.frame = sendButton.bounds
         sendButton.layer.insertSublayer(sendButtonGradientLayer, at: 0)
     }
-    
-    // MARK: - Private Setup
-    private func setupView() {
+}
+
+// MARK: - Setup views (private)
+private extension ChatInputView {
+    func setupView() {
         backgroundColor = AppColors.chatAskAnythingBackground
         layer.cornerRadius = 24
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
@@ -147,8 +153,11 @@ final class ChatInputView: UIView {
             sendButton.layer.insertSublayer(sendButtonGradientLayer, at: 0)
         }
     }
-    
-    private func setupConstraints() {
+}
+
+// MARK: - Setup constraints (private)
+private extension ChatInputView {
+    func setupConstraints() {
         // 1. Микрофон центрируем по вертикали относительно первой строки ввода!
         microphoneButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview().offset(-16).priority(999)
@@ -191,19 +200,22 @@ final class ChatInputView: UIView {
             make.top.equalToSuperview().offset(10)
         }
     }
-    
-    private func setupActions() {
+}
+
+// MARK: - Setup actions (private)
+private extension ChatInputView {
+    func setupActions() {
         textView.delegate = self
         arrowDownButton.addTarget(self, action: #selector(arrowButtonTapped), for: .touchUpInside)
         sendButton.addTarget(self, action: #selector(sendButtonTapped), for: .touchUpInside)
     }
     
     // MARK: - Handlers
-    @objc private func arrowButtonTapped() {
+    @objc func arrowButtonTapped() {
         onArrowTapped?()
     }
     
-    @objc private func sendButtonTapped() {
+    @objc func sendButtonTapped() {
         guard let text = textView.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         onSendTapped?(text)
         textView.text = ""
@@ -221,31 +233,50 @@ extension ChatInputView {
             self.placeholderLabel.text = "How can I help you?"
         case .editingEmpty, .editingWithText:
             self.placeholderLabel.text = "Ask anything..."
+        case .disabled:
+            // Текст плейсхолдера можно оставить дефолтным или скрыть
+            self.placeholderLabel.text = "Loading history..."
         }
         
         self.placeholderLabel.isHidden = !textView.text.isEmpty
+        
+        self.isUserInteractionEnabled = (state != .disabled)
+        
+        if state == .disabled {
+            self.textView.resignFirstResponder()
+        }
         
         let block = { [weak self] in
             guard let self = self else { return }
             
             switch state {
             case .normal:
+                self.alpha = 1.0
                 self.microphoneButton.alpha = 1.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
                 self.arrowTrailingConstraint?.update(offset: -12)
                 
             case .editingEmpty:
+                self.alpha = 1.0
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 1.0
                 self.sendButton.alpha = 0.0
                 self.arrowTrailingConstraint?.update(offset: 52)
                 
             case .editingWithText:
+                self.alpha = 1.0
                 self.microphoneButton.alpha = 0.0
                 self.arrowDownButton.alpha = 0.0
                 self.sendButton.alpha = 1.0
                 self.arrowTrailingConstraint?.update(offset: 52)
+                
+            case .disabled:
+                self.alpha = 0.5
+                self.microphoneButton.alpha = 0.3
+                self.arrowDownButton.alpha = 0.3
+                self.sendButton.alpha = 0.0
+                self.arrowTrailingConstraint?.update(offset: -12)
             }
             self.layoutIfNeeded()
         }
@@ -258,6 +289,7 @@ extension ChatInputView {
         
         onStateChanged?(state)
     }
+
     
     
     func setSendingState(isLoading: Bool) {

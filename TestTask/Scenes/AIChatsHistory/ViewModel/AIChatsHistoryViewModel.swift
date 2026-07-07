@@ -50,6 +50,7 @@ extension AIChatsHistoryViewModel: ViewActionHandlable {
             
         case .chatSelected(let chatId):
             log(message: "Selected chat with ID: \(chatId)")
+            router.trigger(.aiChat(launchContext: .history(chatId: chatId)))
         }
     }
 }

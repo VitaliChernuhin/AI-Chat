@@ -89,6 +89,8 @@ private extension AIChatViewController {
             case .editingWithText:
                 // Появилась хотя бы одна буква -> передаем во ViewModel
                 self.viewModel.handleAction(.inputStateChanged(hasText: true))
+            case .disabled:
+                break
             }
         }
         
@@ -172,20 +174,26 @@ private extension AIChatViewController {
             .sink { [weak self] state in
                 guard let self = self else { return }
                 self.chatView.currentScreenState = state
+                
+                if state == .loadingHistory {
+                    self.inputBarView.updateUI(for: .disabled, animated: true)
+                } else if self.inputBarView.currentState == .disabled {
+                    self.inputBarView.updateUI(for: .normal, animated: true)
+                }
             }
             .store(in: &cancellables)
         
         Publishers.CombineLatest(viewModel.$messages, viewModel.$isAISpeaking)
-             .receive(on: DispatchQueue.main)
-             .sink { [weak self] _, isSpeaking in
-                 guard let self = self else { return }
-                 
-                 // Передаем состояние блокировки кнопке отправки
-                 self.inputBarView.setSendingState(isLoading: isSpeaking)
-                 // Один раз reload у коллекции
-                 self.chatView.reloadAndScrollToBottom(animated: true)
-             }
-             .store(in: &cancellables)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _, isSpeaking in
+                guard let self = self else { return }
+                
+                // Передаем состояние блокировки кнопке отправки
+                self.inputBarView.setSendingState(isLoading: isSpeaking)
+                // Один раз reload у коллекции
+                self.chatView.reloadAndScrollToBottom(animated: true)
+            }
+            .store(in: &cancellables)
     }
 }
 

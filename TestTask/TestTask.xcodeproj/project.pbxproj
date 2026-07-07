@@ -26,6 +26,7 @@
 			membershipExceptions = (
 				AIChat/AIChatViewController.swift,
 				AIChat/Model/AIChatAction.swift,
+				AIChat/Model/ChatLaunchContext.swift,
 				AIChat/Model/ChatMessageItem.swift,
 				AIChat/Model/ChatScreenState.swift,
 				AIChat/ViewModel/AIChatViewModel.swift,

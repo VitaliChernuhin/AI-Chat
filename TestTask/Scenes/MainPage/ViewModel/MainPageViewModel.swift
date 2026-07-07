@@ -53,7 +53,7 @@ extension MainPageViewModel {
         switch action {
         case .aiChatTapped:
             self.log(message: "💬 Пользователь нажал на прямой вход в AI Chat.")
-            router.trigger(.aiChat)
+            router.trigger(.aiChat(launchContext: .newChat))
             
         case .featureTapped(let type):
             if !isPremiumActive {

@@ -121,21 +121,25 @@ extension ChatView {
 
 // MARK: - Update welcome view visibility (private)
 private extension ChatView {
-    
     func updateWelcomeViewVisibility(animated: Bool) {
-        let targetAlpha: CGFloat = currentScreenState == .emptyInitial ? 1.0 : 0.0
+    
+        let shouldHide: Bool
         
-        guard welcomeView.alpha != targetAlpha else { return }
-
-        let block: () -> Void = { [weak self] in
-            guard let self = self else { return }
-            self.welcomeView.alpha = targetAlpha
+        switch currentScreenState {
+        case .emptyInitial, .typingEmptyChat:
+            shouldHide = false // Показываем приветствие
+        case .hasMessages, .loadingHistory:
+            shouldHide = true 
         }
         
+        let targetAlpha: CGFloat = shouldHide ? 0.0 : 1.0
+        
         if animated {
-            UIView.animate(withDuration: 0.25, delay: 0, options: .curveEaseInOut, animations: block)
+            UIView.animate(withDuration: 0.25) {
+                self.welcomeView.alpha = targetAlpha
+            }
         } else {
-            block()
+            self.welcomeView.alpha = targetAlpha
         }
     }
 }

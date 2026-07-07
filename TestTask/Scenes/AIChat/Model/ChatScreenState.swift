@@ -14,4 +14,6 @@ enum ChatScreenState {
     case typingEmptyChat
     /// В чате есть контент (появилось хотя бы одно сообщение — экран приветствия скрыт навсегда)
     case hasMessages
+    /// Подгружается история чатов
+    case loadingHistory
 }

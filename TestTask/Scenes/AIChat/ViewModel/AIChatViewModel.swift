@@ -19,12 +19,23 @@ final class AIChatViewModel: Logable {
     // MARK: - Services & Navigation
     private let router: WeakRouter<MainRoute>
     private let chatNetworkService: AIChatNetworkService
+    
+    private var chatId: String?
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Init
-    init(router: WeakRouter<MainRoute>, chatNetworkService: AIChatNetworkService) {
+    init(router: WeakRouter<MainRoute>, chatNetworkService: AIChatNetworkService, launchContext: ChatLaunchContext) {
         self.router = router
         self.chatNetworkService = chatNetworkService
+        
+        switch launchContext {
+        case .newChat:
+            self.isAISpeaking = false
+        case .history(chatId: let chatId):
+            self.chatId = chatId
+            self.isAISpeaking = true
+            self.screenState = .loadingHistory
+        }
     }
 }
 
@@ -87,6 +98,8 @@ private extension AIChatViewModel {
             }
         } receiveValue: { [weak self] response in
             guard let self = self else { return }
+            
+            self.chatId = response.chatId
             
             let aiText = response.assistantMessage
             let aiMessage = ChatMessageItem(text: aiText, sender: .ai, date: Date())
