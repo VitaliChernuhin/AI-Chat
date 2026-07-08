@@ -24,11 +24,14 @@ final class AIChatViewController: BaseViewController {
     // MARK: - Init
     init(viewModel: AIChatViewModel) {
         self.viewModel = viewModel
+        
+        let rightButtonImage = viewModel.isHistoryChat ? nil : AppIcons.NavigationBar.history
+        
         super.init(
             title: "AI Chat",
-            subtitle: Date().dotFormattedString,
+            subtitle: viewModel.chatSubtitle,
             avatarImage: AppIcons.NavigationBar.chatAvatar,
-            rightImage: AppIcons.NavigationBar.history,
+            rightImage: rightButtonImage
         )
     }
     
@@ -202,6 +205,14 @@ private extension AIChatViewController {
                 self.chatView.reloadAndScrollToBottom(animated: true)
             }
             .store(in: &cancellables)
+    
+        viewModel.$chatSubtitle
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newSubtitle in
+                self?.navigationBar.subtitle = newSubtitle
+            }
+            .store(in: &cancellables)
+
     }
 }
 
@@ -265,5 +276,3 @@ extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDele
         }
     }
 }
-
-

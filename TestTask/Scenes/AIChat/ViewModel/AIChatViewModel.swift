@@ -15,11 +15,19 @@ final class AIChatViewModel: Logable {
     @Published private(set) var messages: [ChatMessageItem] = []
     @Published private(set) var screenState: ChatScreenState = .emptyInitial
     @Published private(set) var isAISpeaking: Bool = false
+    @Published private(set) var chatSubtitle: String = Date().dotFormattedString
+    
+    var isHistoryChat: Bool {
+        if case .history = launchContext {
+            return true
+        }
+        return false
+    }
     
     // MARK: - Services & Navigation
     private let router: WeakRouter<MainRoute>
     private let chatNetworkService: AIChatNetworkService
-    
+    private var launchContext: ChatLaunchContext
     private var chatId: String?
     private var cancellables = Set<AnyCancellable>()
     
@@ -27,15 +35,17 @@ final class AIChatViewModel: Logable {
     init(router: WeakRouter<MainRoute>, chatNetworkService: AIChatNetworkService, launchContext: ChatLaunchContext) {
         self.router = router
         self.chatNetworkService = chatNetworkService
+        self.launchContext = launchContext
         
         switch launchContext {
         case .newChat:
             self.isAISpeaking = false
             self.screenState = .emptyInitial
-        case .history(chatId: let chatId):
+        case .history(chatId: let chatId, lastActivityDate: let date):
             self.chatId = chatId
             self.isAISpeaking = true
             self.screenState = .loadingHistory
+            self.chatSubtitle = date.dotFormattedString
         }
     }
 }
@@ -47,6 +57,8 @@ extension AIChatViewModel: ViewEventHandlable {
         case .viewDidLoad:
             guard chatId != nil else { return }
             loadMessages()
+        case .viewWillAppear:
+            break
         }
     }
 }
@@ -157,7 +169,7 @@ private extension AIChatViewModel {
             guard let self = self else { return }
             
             if case .failure(let error) = completion {
-
+                
                 self.isAISpeaking = false
                 log(message: "Ошибка сети при отправке промпта: \(error.localizedDescription)")
                 
@@ -177,8 +189,9 @@ private extension AIChatViewModel {
             
             let aiText = response.assistantMessage
             let aiMessage = ChatMessageItem(text: aiText, sender: .ai, date: Date())
-            
             self.messages.append(aiMessage)
+            
+            self.chatSubtitle = Date().dotFormattedString
             self.screenState = .hasMessages
             self.isAISpeaking = false
         }

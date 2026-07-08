@@ -9,5 +9,5 @@ import Foundation
 
 enum AIChatsHistoryAction {
     case backTapped
-    case chatSelected(id: String)
+    case chatSelected(chat: ChatHistoryItem)
 }

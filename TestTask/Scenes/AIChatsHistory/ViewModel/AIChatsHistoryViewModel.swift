@@ -36,6 +36,8 @@ extension AIChatsHistoryViewModel: ViewEventHandlable {
     func handleViewEvent(_ event: ViewEvent) {
         switch event {
         case .viewDidLoad:
+            break
+        case .viewWillAppear:
             loadHistory()
         }
     }
@@ -48,9 +50,11 @@ extension AIChatsHistoryViewModel: ViewActionHandlable {
         case .backTapped:
             router.trigger(.back)
             
-        case .chatSelected(let chatId):
-            log(message: "Selected chat with ID: \(chatId)")
-            router.trigger(.aiChat(launchContext: .history(chatId: chatId)))
+        case .chatSelected(let item):
+            log(message: "Selected chat with ID: \(item.id)")
+            // Прокидываем чистую дату изменения 🎯
+            router.trigger(.aiChat(launchContext: .history(chatId: item.id, lastActivityDate: item.date)))
+            
         }
     }
 }
@@ -122,7 +126,6 @@ private extension AIChatsHistoryViewModel {
         let calendar = Calendar.current
         
         for response in responses {
-            // 1. Безопасно парсим дату. Если updatedAt пришел как nil — подставляем текущее время Date()
             let rawDateString = response.updatedAt ?? ""
             let date = isoFormatter.date(from: rawDateString) ?? Date()
             
@@ -139,24 +142,23 @@ private extension AIChatsHistoryViewModel {
             ? timeFormatter.string(from: date)
             : (calendar.isDateInYesterday(date) ? "Yesterday" : sectionTitle)
             
-            // 2. Безопасно разворачиваем тексты. Защищаемся от null в title и preview
-            let chatTitle = response.title ?? "New Chat" // Если имени нет, пишем дефолтное "New Chat"
+            let chatTitle = response.title ?? "New Chat"
             let previewText = response.lastMessagePreview ?? ""
             
-            // 3. Формируем финальный текст для плашки карточки
             let finalCellText = previewText.isEmpty ? chatTitle : previewText
             
             let item = ChatHistoryItem(
                 id: response.chatId,
                 text: finalCellText,
-                time: displayTime
+                time: displayTime,
+                date: date
             )
             
             grouped[sectionTitle, default: []].append(item)
         }
         
         for (key, items) in grouped {
-            grouped[key] = items.sorted { $0.time > $1.time }
+            grouped[key] = items.sorted { $0.date > $1.date }
         }
         
         return grouped

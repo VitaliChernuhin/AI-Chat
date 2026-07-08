@@ -42,6 +42,8 @@ extension PaywallViewModel {
         case .viewDidLoad:
             startCloseButtonDelayTimer()
             loadProducts()
+        case .viewWillAppear:
+            break
         }
     }
 }

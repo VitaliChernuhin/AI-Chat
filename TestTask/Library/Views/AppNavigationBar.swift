@@ -13,6 +13,18 @@ final class AppNavigationBar: UIView {
     var onBackTapped: (() -> Void)?
     var onRightTapped: (() -> Void)?
     
+    var subtitle: String? {
+        didSet {
+            if let subtitle = subtitle, !subtitle.isEmpty {
+                subtitleLabel.text = subtitle
+                subtitleLabel.isHidden = false
+            } else {
+                subtitleLabel.text = nil
+                subtitleLabel.isHidden = true
+            }
+        }
+    }
+    
     // MARK: - UI Components
     private let backButton: UIButton = {
         let button = UIButton(type: .system)

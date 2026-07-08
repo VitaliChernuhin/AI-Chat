@@ -43,6 +43,8 @@ extension MainPageViewModel {
         case .viewDidLoad:
             bindSubscriptionStatus()
             checkSubscription()
+        case .viewWillAppear:
+            break
         }
     }
 }

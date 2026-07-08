@@ -53,6 +53,12 @@ final class AIChatsHistoryViewController: BaseViewController {
  
         viewModel.handleViewEvent(.viewDidLoad)
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        viewModel.handleViewEvent(.viewWillAppear)
+    }
 }
 
 // MARK: - Setup views (private)
@@ -219,8 +225,7 @@ extension AIChatsHistoryViewController: UICollectionViewDataSource, UICollection
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let key = sectionKeys[indexPath.section]
         if let item = chatSections[key]?[indexPath.item] {
-            // Передаем экшен выбора чата во вью-модель!
-            viewModel.handleAction(.chatSelected(id: item.id))
+            viewModel.handleAction(.chatSelected(chat: item))
         }
     }
 }

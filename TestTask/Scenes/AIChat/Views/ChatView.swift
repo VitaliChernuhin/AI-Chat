@@ -122,16 +122,17 @@ private extension ChatView {
         let shouldHide: Bool
         
         switch currentScreenState {
-        case .emptyInitial, .typingEmptyChat:
-            shouldHide = false // Показываем приветствие
-        case .hasMessages, .loadingHistory:
-            shouldHide = true 
+        case .emptyInitial:
+            shouldHide = false
+            
+        case .typingEmptyChat, .hasMessages, .loadingHistory:
+            shouldHide = true
         }
         
         let targetAlpha: CGFloat = shouldHide ? 0.0 : 1.0
         
         if animated {
-            UIView.animate(withDuration: 0.25) {
+            UIView.animate(withDuration: 0.2) {
                 self.welcomeView.alpha = targetAlpha
             }
         } else {

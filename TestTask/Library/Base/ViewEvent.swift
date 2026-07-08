@@ -7,5 +7,5 @@
 
 enum ViewEvent {
     case viewDidLoad
-    // Здесь можно добавлять другие события жизни View, если понадобится
+    case viewWillAppear
 }
