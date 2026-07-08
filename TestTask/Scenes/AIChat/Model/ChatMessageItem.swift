@@ -38,3 +38,9 @@ extension ChatMessageItem {
     }
 }
 
+extension ChatMessageItem: Equatable {
+    static func == (lhs: ChatMessageItem, rhs: ChatMessageItem) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+

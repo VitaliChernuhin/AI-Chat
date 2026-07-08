@@ -289,31 +289,15 @@ extension ChatInputView {
         
         onStateChanged?(state)
     }
-
-    
     
     func setSendingState(isLoading: Bool) {
         sendButton.isEnabled = !isLoading
     }
-    
-    func clearInput() {
-        // 1. Очищаем текст через nil
-        textView.text = nil
-        
-        // 2. СБРОС КЭША ВЫСОТЫ: Зануляем contentSize
-        textView.contentSize = .zero
-        
-        // 3. ТРЮК С ПЕРЕРАСЧЕТОМ: Слегка дергаем инсеты контейнера,
-        // чтобы заставить TextKit жестко сбросить старые текстовые фреймы
-        let currentInsets = textView.textContainerInset
-        textView.textContainerInset = .zero
-        textView.textContainerInset = currentInsets
-        
-        // 4. Принудительно вызываем метод твоего делегата, чтобы сработал внутренний расчет высоты SnapKit
-        self.textViewDidChange(textView)
-        
-        // 5. Синхронно перерисовываем панель ввода
-        self.layoutIfNeeded()
+
+    func clearInputText() {
+        textView.text = ""
+        textView.isScrollEnabled = false
+        self.updateUI(for: .normal, animated: true)
     }
 }
 

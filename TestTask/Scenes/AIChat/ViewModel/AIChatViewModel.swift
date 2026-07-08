@@ -76,6 +76,7 @@ private extension AIChatViewModel {
     func loadMessages() {
         let userId = AppConfig.testUserId
         let appId = AppConfig.testApplicationId
+        
         let targetChatId = chatId ?? "\(userId)_\(appId)".deterministicUUIDString
         
         chatNetworkService.fetchMessages(
@@ -99,7 +100,7 @@ private extension AIChatViewModel {
                 self.router.trigger(.alert(type: .error, message: error.localizedDescription))
                 
                 Just(())
-                    .delay(for: .seconds(3.0), scheduler: DispatchQueue.main)
+                    .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
                     .sink { [weak self] _ in
                         guard let self = self else { return }
                         self.router.trigger(.dismiss) {
@@ -112,10 +113,9 @@ private extension AIChatViewModel {
         } receiveValue: { [weak self] response in
             guard let self = self else { return }
             
-            // Мапим серверный ответ в твои UI-модели ChatMessageItem
             let fetchedMessages = response.map { ChatMessageItem(from: $0) }
             self.messages = fetchedMessages
-     
+            
             self.screenState = fetchedMessages.isEmpty ? .emptyInitial : .hasMessages
             self.isAISpeaking = false
         }
@@ -141,21 +141,34 @@ private extension AIChatViewModel {
         
         let userId = AppConfig.testUserId
         let appId = AppConfig.testApplicationId
-        let targetChatId = "\(userId)_\(appId)".deterministicUUIDString
         
-        chatNetworkService.sendPrompt(chatId: targetChatId,
-                                      userId: userId,
-                                      appId: appId,
-                                      text: trimmedText,
-                                      locale: nil, acceptLanguage: nil)
+        let targetChatId = chatId ?? "\(userId)_\(appId)".deterministicUUIDString
+        
+        chatNetworkService.sendPrompt(
+            chatId: targetChatId,
+            userId: userId,
+            appId: appId,
+            text: trimmedText,
+            locale: nil,
+            acceptLanguage: nil
+        )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] completion in
             guard let self = self else { return }
-            self.isAISpeaking = false
             
             if case .failure(let error) = completion {
-                log(message: "Ошибка сети: \(error.localizedDescription)")
+
+                self.isAISpeaking = false
+                log(message: "Ошибка сети при отправке промпта: \(error.localizedDescription)")
+                
                 self.router.trigger(.alert(type: .error, message: error.localizedDescription))
+                
+                Just(())
+                    .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                    .sink { [weak self] _ in
+                        self?.router.trigger(.dismiss)
+                    }
+                    .store(in: &self.cancellables)
             }
         } receiveValue: { [weak self] response in
             guard let self = self else { return }
@@ -164,7 +177,10 @@ private extension AIChatViewModel {
             
             let aiText = response.assistantMessage
             let aiMessage = ChatMessageItem(text: aiText, sender: .ai, date: Date())
+            
             self.messages.append(aiMessage)
+            self.screenState = .hasMessages
+            self.isAISpeaking = false
         }
         .store(in: &cancellables)
     }

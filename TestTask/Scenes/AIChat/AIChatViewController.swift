@@ -100,7 +100,7 @@ private extension AIChatViewController {
         }
         
         inputBarView.onSendTapped = { [weak self] text in
-            self?.inputBarView.clearInput()
+            self?.inputBarView.clearInputText()
             self?.viewModel.handleAction(.sendTapped(text: text))
         }
         
@@ -170,6 +170,7 @@ private extension AIChatViewController {
 private extension AIChatViewController {
     
     func bindViewModel() {
+
         viewModel.$screenState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
@@ -184,32 +185,40 @@ private extension AIChatViewController {
             }
             .store(in: &cancellables)
         
-        Publishers.CombineLatest(viewModel.$messages, viewModel.$isAISpeaking)
+        viewModel.$messages
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _, isSpeaking in
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.chatView.reloadAndScrollToBottom(animated: true)
+            }
+            .store(in: &cancellables)
+
+        viewModel.$isAISpeaking
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isSpeaking in
                 guard let self = self else { return }
                 
-                // Передаем состояние блокировки кнопке отправки
                 self.inputBarView.setSendingState(isLoading: isSpeaking)
-                // Один раз reload у коллекции
                 self.chatView.reloadAndScrollToBottom(animated: true)
             }
             .store(in: &cancellables)
     }
 }
 
+
 // MARK: - UICollectionViewDataSource & UICollectionViewDelegate
 extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // Если ИИ печатает, искусственно увеличиваем количество ячеек на одну (для индикатора)
         let messagesCount = viewModel.messages.count
         return viewModel.isAISpeaking ? messagesCount + 1 : messagesCount
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        if viewModel.isAISpeaking && indexPath.item == viewModel.messages.count {
+        let messagesCount = viewModel.messages.count
+        
+        if viewModel.isAISpeaking && indexPath.item == messagesCount {
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: ChatTypingIndicatorCell.reuseIdentifier,
                 for: indexPath
@@ -217,6 +226,10 @@ extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDele
                 return UICollectionViewCell()
             }
             return cell
+        }
+    
+        guard indexPath.item < messagesCount else {
+            return collectionView.dequeueReusableCell(withReuseIdentifier: ChatTypingIndicatorCell.reuseIdentifier, for: indexPath)
         }
         
         let message = viewModel.messages[indexPath.item]
@@ -247,7 +260,6 @@ extension AIChatViewController: UICollectionViewDataSource, UICollectionViewDele
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        
         if let typingCell = cell as? ChatTypingIndicatorCell {
             typingCell.startAnimating()
         }

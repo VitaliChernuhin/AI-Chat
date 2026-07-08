@@ -108,7 +108,15 @@ private extension PaywallViewModel {
                 if case .failure(let error) = completion {
                     self.log(message: "❌ Не удалось загрузить актуальные цены из Apphud: \(error.localizedDescription)")
                     let friendlyMessage = "Failed to load pricing. Please check your internet connection."
+                    
                     self.router.trigger(.alert(type: .error, message: friendlyMessage))
+    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            self?.router.trigger(.dismiss)
+                        }
+                        .store(in: &self.cancellables)
                 }
             } receiveValue: { [weak self] actualProducts in
                 guard let self = self else { return }
@@ -126,6 +134,7 @@ private extension PaywallViewModel {
             .store(in: &cancellables)
     }
 }
+
 
 // MARK: - Execute purchases (private)
 private extension PaywallViewModel {
@@ -148,8 +157,14 @@ private extension PaywallViewModel {
                     self.log(message: "❌ Ошибка транзакции: \(error.localizedDescription)")
                     self.isPurchasing = false
                     
-                    // Стандартный атомарный алерт без закрытия экрана
                     self.router.trigger(.alert(type: .error, message: error.localizedDescription))
+                    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            self?.router.trigger(.dismiss)
+                        }
+                        .store(in: &self.cancellables)
                 }
             } receiveValue: { [weak self] isSuccess in
                 guard let self = self else { return }
@@ -162,16 +177,18 @@ private extension PaywallViewModel {
                         type: .success,
                         message: "Subscription activated! Thank you!"
                     ))
-                    
+                
                     Just(())
                         .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
                         .sink { [weak self] _ in
                             guard let self = self else { return }
+                            // Сначала гасим сам алерт успеха
                             self.router.trigger(.dismiss) {
+                                // После скрытия алерта закрываем модальный пейволл
                                 self.router.trigger(.dismiss)
                             }
                         }
-                        .store(in: &self.cancellables) // Полная защита от утечек памяти
+                        .store(in: &self.cancellables)
                     
                 } else {
                     self.log(message: "⚠️ Транзакция была отменена пользователем.")
@@ -180,6 +197,7 @@ private extension PaywallViewModel {
             .store(in: &cancellables)
     }
 }
+
 
 // MARK: - Execute restore (private)
 private extension PaywallViewModel {
@@ -201,6 +219,13 @@ private extension PaywallViewModel {
                     self.isPurchasing = false
                     
                     self.router.trigger(.alert(type: .error, message: error.localizedDescription))
+                    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            self?.router.trigger(.dismiss)
+                        }
+                        .store(in: &self.cancellables)
                 }
             } receiveValue: { [weak self] isSuccess in
                 guard let self = self else { return }
@@ -218,18 +243,25 @@ private extension PaywallViewModel {
                         .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
                         .sink { [weak self] _ in
                             guard let self = self else { return }
-                            // Сначала гасим сам алерт успеха
                             self.router.trigger(.dismiss) {
-                                // После скрытия алерта закрываем модальный пейволл
                                 self.router.trigger(.dismiss)
                             }
                         }
-                        .store(in: &self.cancellables) // Полная защита от утечек памяти
+                        .store(in: &self.cancellables)
                 } else {
                     self.log(message: "⚠️ Активных подписок для восстановления не обнаружено.")
+                    
                     self.router.trigger(.alert(type: .error, message: "No active subscriptions found."))
+                    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            self?.router.trigger(.dismiss)
+                        }
+                        .store(in: &self.cancellables)
                 }
             }
             .store(in: &cancellables)
     }
 }
+
