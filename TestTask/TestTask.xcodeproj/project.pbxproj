@@ -67,6 +67,7 @@
 				Base/AppAlertViewController.swift,
 				Base/BaseViewController.swift,
 				Base/ComingSoonViewController.swift,
+				Base/DynamicValue.swift,
 				Base/Logable.swift,
 				Base/Protocols/NavigationBarOwner.swift,
 				Base/Protocols/Routable.swift,

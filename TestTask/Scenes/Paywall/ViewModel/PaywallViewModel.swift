@@ -148,7 +148,7 @@ private extension PaywallViewModel {
                     self.log(message: "❌ Ошибка транзакции: \(error.localizedDescription)")
                     self.isPurchasing = false
                     
-                    // При обычной ошибке триггерим стандартный алерт (экран НЕ закрываем)
+                    // Стандартный атомарный алерт без закрытия экрана
                     self.router.trigger(.alert(type: .error, message: error.localizedDescription))
                 }
             } receiveValue: { [weak self] isSuccess in
@@ -158,11 +158,21 @@ private extension PaywallViewModel {
                 if isSuccess {
                     self.log(message: "🎉 Транзакция прошла успешно!")
                     
-                    // Координатор покажет чек-марк на 2.5 сек и сам уберет пейволл
-                    self.router.trigger(.dismissAfterAlert(
+                    self.router.trigger(.alert(
                         type: .success,
                         message: "Subscription activated! Thank you!"
                     ))
+                    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            guard let self = self else { return }
+                            self.router.trigger(.dismiss) {
+                                self.router.trigger(.dismiss)
+                            }
+                        }
+                        .store(in: &self.cancellables) // Полная защита от утечек памяти
+                    
                 } else {
                     self.log(message: "⚠️ Транзакция была отменена пользователем.")
                 }
@@ -190,7 +200,6 @@ private extension PaywallViewModel {
                     self.log(message: "❌ Ошибка восстановления покупок: \(error.localizedDescription)")
                     self.isPurchasing = false
                     
-                    // Показываем стандартную ошибку, экран подписки оставляем открытым
                     self.router.trigger(.alert(type: .error, message: error.localizedDescription))
                 }
             } receiveValue: { [weak self] isSuccess in
@@ -200,10 +209,22 @@ private extension PaywallViewModel {
                 if isSuccess {
                     self.log(message: "🎉 Покупки успешно восстановлены, закрываем сцену подписки!")
                     
-                    self.router.trigger(.dismissAfterAlert(
+                    self.router.trigger(.alert(
                         type: .success,
                         message: "Purchases successfully restored!"
                     ))
+                    
+                    Just(())
+                        .delay(for: .seconds(2.5), scheduler: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            guard let self = self else { return }
+                            // Сначала гасим сам алерт успеха
+                            self.router.trigger(.dismiss) {
+                                // После скрытия алерта закрываем модальный пейволл
+                                self.router.trigger(.dismiss)
+                            }
+                        }
+                        .store(in: &self.cancellables) // Полная защита от утечек памяти
                 } else {
                     self.log(message: "⚠️ Активных подписок для восстановления не обнаружено.")
                     self.router.trigger(.alert(type: .error, message: "No active subscriptions found."))

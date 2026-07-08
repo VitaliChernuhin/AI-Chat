@@ -16,7 +16,8 @@ struct AIValidationErrorDetail: Decodable {
     let loc: [DetailLocation]
     let msg: String
     let type: String
-    let input: String? // Опционально, так как для missing полей его не будет
+    let input: DynamicValue?
+    let ctx: [String: DynamicValue]?
     
     enum DetailLocation: Decodable {
         case string(String)
@@ -39,3 +40,4 @@ struct AIValidationErrorDetail: Decodable {
         }
     }
 }
+

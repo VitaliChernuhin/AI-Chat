@@ -31,10 +31,22 @@ final class AIChatViewModel: Logable {
         switch launchContext {
         case .newChat:
             self.isAISpeaking = false
+            self.screenState = .emptyInitial
         case .history(chatId: let chatId):
             self.chatId = chatId
             self.isAISpeaking = true
             self.screenState = .loadingHistory
+        }
+    }
+}
+
+// MARK: - ViewEventHandable (implementation)
+extension AIChatViewModel: ViewEventHandlable {
+    func handleViewEvent(_ event: ViewEvent) {
+        switch event {
+        case .viewDidLoad:
+            guard chatId != nil else { return }
+            loadMessages()
         }
     }
 }
@@ -61,6 +73,55 @@ extension AIChatViewModel: ViewActionHandlable {
 // MARK: - Private methods
 private extension AIChatViewModel {
     
+    func loadMessages() {
+        let userId = AppConfig.testUserId
+        let appId = AppConfig.testApplicationId
+        let targetChatId = chatId ?? "\(userId)_\(appId)".deterministicUUIDString
+        
+        chatNetworkService.fetchMessages(
+            chatId: targetChatId,
+            userId: userId,
+            appId: appId,
+            chatsLimitCount: 50,
+            chatsPaginationOffset: 0
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] completion in
+            guard let self = self else { return }
+            
+            switch completion {
+            case .finished:
+                break
+            case .failure(let error):
+                self.isAISpeaking = false
+                log(message: "Ошибка сети при загрузке истории: \(error.localizedDescription)")
+                
+                self.router.trigger(.alert(type: .error, message: error.localizedDescription))
+                
+                Just(())
+                    .delay(for: .seconds(3.0), scheduler: DispatchQueue.main)
+                    .sink { [weak self] _ in
+                        guard let self = self else { return }
+                        self.router.trigger(.dismiss) {
+                            self.router.trigger(.back)
+                        }
+                    }
+                    .store(in: &self.cancellables)
+            }
+            
+        } receiveValue: { [weak self] response in
+            guard let self = self else { return }
+            
+            // Мапим серверный ответ в твои UI-модели ChatMessageItem
+            let fetchedMessages = response.map { ChatMessageItem(from: $0) }
+            self.messages = fetchedMessages
+     
+            self.screenState = fetchedMessages.isEmpty ? .emptyInitial : .hasMessages
+            self.isAISpeaking = false
+        }
+        .store(in: &cancellables)
+    }
+    
     func executeInputChange(hasText: Bool) {
         guard screenState != .hasMessages else { return }
         screenState = hasText ? .typingEmptyChat : .emptyInitial
@@ -77,11 +138,11 @@ private extension AIChatViewModel {
         
         screenState = .hasMessages
         isAISpeaking = true
-    
+        
         let userId = AppConfig.testUserId
         let appId = AppConfig.testApplicationId
         let targetChatId = "\(userId)_\(appId)".deterministicUUIDString
-
+        
         chatNetworkService.sendPrompt(chatId: targetChatId,
                                       userId: userId,
                                       appId: appId,

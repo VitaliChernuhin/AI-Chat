@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 @preconcurrency import XCoordinator
 
 enum MainRoute: Route {
@@ -17,7 +16,6 @@ enum MainRoute: Route {
     case aiChatsHistory
     case alert(type: AppAlertView.AlertType, message: String)
     case dismiss
-    case dismissAfterAlert(type: AppAlertView.AlertType, message: String)
     case paywall
     case fixImproveText
     case summarizeText
@@ -29,9 +27,6 @@ enum MainRoute: Route {
 
 final class MainCoordinator: NavigationCoordinator<MainRoute> {
     
-    private var cancellables = Set<AnyCancellable>()
-    private let alertTime = 2.5
-    
     init() {
         let navigationController = MainActor.assumeIsolated {
             let nc = UINavigationController()
@@ -42,6 +37,7 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
         super.init(rootViewController: navigationController, initialRoute: .mainPage)
     }
     
+
     override func prepareTransition(for route: MainRoute) -> NavigationTransition {
         let currentRouter = self.weakRouter
         
@@ -74,16 +70,6 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             }
             
         case .alert(let type, let message):
-            let router = currentRouter
-            
-            let subscription = Just(())
-                .delay(for: .seconds(alertTime), scheduler: DispatchQueue.main)
-                .sink { _ in
-                    router.trigger(.dismiss)
-                }
-            
-            self.cancellables.insert(subscription)
-            
             let transition: NavigationTransition = MainActor.assumeIsolated {
                 let viewController = Self.configureAppAlertScene(type: type, message: message)
                 viewController.modalPresentationStyle = .overFullScreen
@@ -99,40 +85,12 @@ final class MainCoordinator: NavigationCoordinator<MainRoute> {
             
         case .dismiss:
             return .dismiss()
-            
-        case .dismissAfterAlert(let type, let message):
-            let router = currentRouter
-            
-            let subscription = Just(())
-                .delay(for: .seconds(alertTime), scheduler: DispatchQueue.main)
-                .sink { _ in
-                    router.trigger(.dismiss) {
-                        router.trigger(.dismiss)
-                    }
-                }
-            self.cancellables.insert(subscription)
-            
-            return MainActor.assumeIsolated {
-                let viewController = Self.configureAppAlertScene(type: type, message: message)
-                viewController.modalPresentationStyle = .overFullScreen
-                
-                let customAnimation = Animation(
-                    presentation: AppAlertTransitionAnimation(isPresenting: true),
-                    dismissal: AppAlertTransitionAnimation(isPresenting: false)
-                )
-                
-                // Презентуем алерт на экран
-                return .present(viewController, animation: customAnimation)
-            }
-            
+        
         case .paywall:
             return MainActor.assumeIsolated {
                 let viewController = Self.configurePaywallScene(router: currentRouter)
-                // Настраиваем системную или кастомную анимацию выезда снизу вверх
-                
                 viewController.modalPresentationStyle = .fullScreen
-                viewController.modalTransitionStyle = .coverVertical // Нативный выезд снизу вверх
-                
+                viewController.modalTransitionStyle = .coverVertical
                 return .present(viewController)
             }
             

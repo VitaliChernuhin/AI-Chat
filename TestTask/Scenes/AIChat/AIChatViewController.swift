@@ -49,6 +49,7 @@ final class AIChatViewController: BaseViewController {
         setupActions()
         setupKeyboardObservers()
         bindViewModel()
+        viewModel.handleViewEvent(.viewDidLoad)
     }
     
     // MARK: - Setup

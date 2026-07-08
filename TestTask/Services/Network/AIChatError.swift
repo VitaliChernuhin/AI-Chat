@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Network Errors
 enum AIChatError: Error {
     /// Ошибка 422 — не прошли регулярные выражения или забыли параметр
-    case validation(String)
+    case validation(AIValidationErrorDetail)
     /// Ошибка 404 — чат с таким ID не существует на бэкенде
     case chatNotFound
     /// Ошибка 500+ — проблемы на стороне самого сервера
@@ -25,10 +25,10 @@ enum AIChatError: Error {
 extension AIChatError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .validation(let reason):
-            return reason.isEmpty
+        case .validation(let detail):
+            return detail.msg.isEmpty
                 ? "Invalid data format. Please verify your input parameters."
-                : "Validation error: \(reason)"
+                : "Validation error: \(detail.msg)"
             
         case .chatNotFound:
             return "Active session not found. Please try to restart the chat."

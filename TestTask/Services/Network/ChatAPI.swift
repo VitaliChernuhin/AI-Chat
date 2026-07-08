@@ -28,6 +28,15 @@ enum ChatAPI {
         limitChatsCount: Int?,
         chatsPaginationOffset: Int?
     )
+    
+    /// Получение сообщений чата
+    case getMessages(
+        chatId: String,
+        userId: String,
+        appId: String,
+        limitChatsCount: Int?,
+        chatsPaginationOffset: Int?
+    )
 }
 
 extension ChatAPI: TargetType {
@@ -43,6 +52,8 @@ extension ChatAPI: TargetType {
             return "/dola/chats/\(chatId)/messages"
         case .chatsList:
             return "/dola/chats"
+        case .getMessages(let chatId,_,_,_,_):
+            return "/dola/chats/\(chatId)/messages"
         }
     }
     
@@ -51,6 +62,8 @@ extension ChatAPI: TargetType {
         case .sendMessage:
             return .post
         case .chatsList:
+            return .get
+        case .getMessages:
             return .get
         }
     }
@@ -94,7 +107,24 @@ extension ChatAPI: TargetType {
             }
             
             return .requestParameters(parameters: urlParameters, encoding: URLEncoding.queryString)
+            
+        case .getMessages(_, let userId, let appId, let limit , let offset):
+            var urlParameters: [String: Any] = [
+                "user_id": userId,
+                "app_id": appId
+            ]
+            
+            if let limit = limit {
+                urlParameters["limit"] = limit
+            }
+            
+            if let offset = offset {
+                urlParameters["offset"] = offset
+            }
+            
+            return .requestParameters(parameters: urlParameters, encoding: URLEncoding.queryString)
         }
+        
     }
     
     var headers: [String: String]? {
@@ -111,8 +141,11 @@ extension ChatAPI: TargetType {
             
         case .chatsList:
             break
+            
+        case .getMessages:
+            break
         }
-        
+                
         return currentHeaders
     }
     
