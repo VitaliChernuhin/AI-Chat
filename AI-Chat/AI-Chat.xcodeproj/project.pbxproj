@@ -13,15 +13,15 @@
 		5F7CB3642FE6DA9B00D65A0F /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3632FE6DA9B00D65A0F /* Swinject */; };
 		5F7CB3672FE6DAB100D65A0F /* CombineMoya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3662FE6DAB100D65A0F /* CombineMoya */; };
 		5F7CB3692FE6DAB100D65A0F /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7CB3682FE6DAB100D65A0F /* Moya */; };
-		5FDB65322FF6B6C9008D9DBC /* ApphudSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 5FDB65312FF6B6C9008D9DBC /* ApphudSDK */; };
+		5F7F38A33017737B001E2027 /* ApphudSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 5F7F38A23017737B001E2027 /* ApphudSDK */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		5F422AF62FE66FD500BB5B9D /* TestTask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestTask.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F422AF62FE66FD500BB5B9D /* AI-Chat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AI-Chat.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5F5CE1442FE6D50500760AA3 /* Exceptions for "Scenes" folder in "TestTask" target */ = {
+		5F5CE1442FE6D50500760AA3 /* Exceptions for "Scenes" folder in "AI-Chat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AIChat/AIChatViewController.swift,
@@ -59,9 +59,9 @@
 				Paywall/Views/PaywallCancelAnytimeView.swift,
 				Paywall/Views/PaywallProductCell.swift,
 			);
-			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+			target = 5F422AF52FE66FD500BB5B9D /* AI-Chat */;
 		};
-		5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "TestTask" target */ = {
+		5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "AI-Chat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Base/AppAlertViewController.swift,
@@ -88,23 +88,23 @@
 				Views/AppNavigationBar.swift,
 				Views/GradientBackgroundView.swift,
 			);
-			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+			target = 5F422AF52FE66FD500BB5B9D /* AI-Chat */;
 		};
-		5F5CE1482FE6D51700760AA3 /* Exceptions for "Coordinators" folder in "TestTask" target */ = {
+		5F5CE1482FE6D51700760AA3 /* Exceptions for "Coordinators" folder in "AI-Chat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				MainCoordinator.swift,
 			);
-			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+			target = 5F422AF52FE66FD500BB5B9D /* AI-Chat */;
 		};
-		5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "TestTask" target */ = {
+		5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "AI-Chat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				TestPurchases.storekit,
 			);
-			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+			target = 5F422AF52FE66FD500BB5B9D /* AI-Chat */;
 		};
-		5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "TestTask" target */ = {
+		5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "AI-Chat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AIChatNetworkService.swift,
@@ -119,7 +119,7 @@
 				SubscriptionService/SubscriprionService.swift,
 				SubscriptionService/SubscriptionProduct.swift,
 			);
-			target = 5F422AF52FE66FD500BB5B9D /* TestTask */;
+			target = 5F422AF52FE66FD500BB5B9D /* AI-Chat */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -127,7 +127,7 @@
 		5F5CE12A2FE6C41E00760AA3 /* Library */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "TestTask" target */,
+				5F5CE1462FE6D50F00760AA3 /* Exceptions for "Library" folder in "AI-Chat" target */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -140,7 +140,7 @@
 		5F5CE1322FE6C43900760AA3 /* Support */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "TestTask" target */,
+				5FBDD76F2FF79B0E008B2D8D /* Exceptions for "Support" folder in "AI-Chat" target */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -153,7 +153,7 @@
 		5F5CE13D2FE6C93300760AA3 /* Scenes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5F5CE1442FE6D50500760AA3 /* Exceptions for "Scenes" folder in "TestTask" target */,
+				5F5CE1442FE6D50500760AA3 /* Exceptions for "Scenes" folder in "AI-Chat" target */,
 			);
 			path = Scenes;
 			sourceTree = "<group>";
@@ -161,7 +161,7 @@
 		5F5CE13F2FE6CA7700760AA3 /* Coordinators */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5F5CE1482FE6D51700760AA3 /* Exceptions for "Coordinators" folder in "TestTask" target */,
+				5F5CE1482FE6D51700760AA3 /* Exceptions for "Coordinators" folder in "AI-Chat" target */,
 			);
 			path = Coordinators;
 			sourceTree = "<group>";
@@ -169,7 +169,7 @@
 		5FF7455B2FE6ED9000B54A38 /* Services */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "TestTask" target */,
+				5FF7455E2FE6EDAF00B54A38 /* Exceptions for "Services" folder in "AI-Chat" target */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -182,7 +182,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5F7CB35F2FE6DA8B00D65A0F /* SnapKit in Frameworks */,
-				5FDB65322FF6B6C9008D9DBC /* ApphudSDK in Frameworks */,
+				5F7F38A33017737B001E2027 /* ApphudSDK in Frameworks */,
 				5F7CB3642FE6DA9B00D65A0F /* Swinject in Frameworks */,
 				5F7CB3672FE6DAB100D65A0F /* CombineMoya in Frameworks */,
 				5F7CB35C2FE6DA3200D65A0F /* XCoordinatorCombine in Frameworks */,
@@ -211,7 +211,7 @@
 		5F422AF72FE66FD500BB5B9D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5F422AF62FE66FD500BB5B9D /* TestTask.app */,
+				5F422AF62FE66FD500BB5B9D /* AI-Chat.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -219,9 +219,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5F422AF52FE66FD500BB5B9D /* TestTask */ = {
+		5F422AF52FE66FD500BB5B9D /* AI-Chat */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5F422B092FE66FD700BB5B9D /* Build configuration list for PBXNativeTarget "TestTask" */;
+			buildConfigurationList = 5F422B092FE66FD700BB5B9D /* Build configuration list for PBXNativeTarget "AI-Chat" */;
 			buildPhases = (
 				5F422AF22FE66FD500BB5B9D /* Sources */,
 				5F422AF32FE66FD500BB5B9D /* Frameworks */,
@@ -235,7 +235,7 @@
 				5F5CE12E2FE6C42E00760AA3 /* Resources */,
 				5F5CE1352FE6C45100760AA3 /* Main */,
 			);
-			name = TestTask;
+			name = "AI-Chat";
 			packageProductDependencies = (
 				5F7CB3592FE6DA3200D65A0F /* XCoordinator */,
 				5F7CB35B2FE6DA3200D65A0F /* XCoordinatorCombine */,
@@ -243,10 +243,10 @@
 				5F7CB3632FE6DA9B00D65A0F /* Swinject */,
 				5F7CB3662FE6DAB100D65A0F /* CombineMoya */,
 				5F7CB3682FE6DAB100D65A0F /* Moya */,
-				5FDB65312FF6B6C9008D9DBC /* ApphudSDK */,
+				5F7F38A23017737B001E2027 /* ApphudSDK */,
 			);
 			productName = TestTask;
-			productReference = 5F422AF62FE66FD500BB5B9D /* TestTask.app */;
+			productReference = 5F422AF62FE66FD500BB5B9D /* AI-Chat.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -264,7 +264,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5F422AF12FE66FD500BB5B9D /* Build configuration list for PBXProject "TestTask" */;
+			buildConfigurationList = 5F422AF12FE66FD500BB5B9D /* Build configuration list for PBXProject "AI-Chat" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -278,14 +278,14 @@
 				5F7CB35D2FE6DA8B00D65A0F /* XCRemoteSwiftPackageReference "SnapKit" */,
 				5F7CB3622FE6DA9B00D65A0F /* XCRemoteSwiftPackageReference "Swinject" */,
 				5F7CB3652FE6DAB100D65A0F /* XCRemoteSwiftPackageReference "Moya" */,
-				5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */,
+				5F7F38A13017737B001E2027 /* XCRemoteSwiftPackageReference "ApphudSDK" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5F422AF72FE66FD500BB5B9D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5F422AF52FE66FD500BB5B9D /* TestTask */,
+				5F422AF52FE66FD500BB5B9D /* AI-Chat */,
 			);
 		};
 /* End PBXProject section */
@@ -517,7 +517,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5F422AF12FE66FD500BB5B9D /* Build configuration list for PBXProject "TestTask" */ = {
+		5F422AF12FE66FD500BB5B9D /* Build configuration list for PBXProject "AI-Chat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F422B0C2FE66FD700BB5B9D /* Debug */,
@@ -526,7 +526,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5F422B092FE66FD700BB5B9D /* Build configuration list for PBXNativeTarget "TestTask" */ = {
+		5F422B092FE66FD700BB5B9D /* Build configuration list for PBXNativeTarget "AI-Chat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F422B0A2FE66FD700BB5B9D /* Debug */,
@@ -570,12 +570,12 @@
 				minimumVersion = 15.0.3;
 			};
 		};
-		5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */ = {
+		5F7F38A13017737B001E2027 /* XCRemoteSwiftPackageReference "ApphudSDK" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apphud/ApphudSDK";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.4.0;
+				minimumVersion = 4.4.6;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -611,9 +611,9 @@
 			package = 5F7CB3652FE6DAB100D65A0F /* XCRemoteSwiftPackageReference "Moya" */;
 			productName = Moya;
 		};
-		5FDB65312FF6B6C9008D9DBC /* ApphudSDK */ = {
+		5F7F38A23017737B001E2027 /* ApphudSDK */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5FDB65302FF6B6C9008D9DBC /* XCRemoteSwiftPackageReference "ApphudSDK" */;
+			package = 5F7F38A13017737B001E2027 /* XCRemoteSwiftPackageReference "ApphudSDK" */;
 			productName = ApphudSDK;
 		};
 /* End XCSwiftPackageProductDependency section */
